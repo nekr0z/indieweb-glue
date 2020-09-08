@@ -72,3 +72,38 @@ func TestServeHcard(t *testing.T) {
 		t.Fatalf("want %s, got %s", want, b)
 	}
 }
+
+func TestServePhoto(t *testing.T) {
+	s := httptest.NewServer(http.HandlerFunc(servePhoto))
+	defer s.Close()
+
+	fs := http.FileServer(http.Dir("testdata"))
+	ms := httptest.NewServer(fs)
+	defer ms.Close()
+
+	u, _ := url.Parse(s.URL)
+	v := url.Values{}
+	v.Add("url", ms.URL)
+	u.RawQuery = v.Encode()
+
+	res, err := http.Get(u.String())
+	if err != nil {
+		t.Fatalf("error: %v", err)
+	}
+	defer res.Body.Close()
+
+	got, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return
+	}
+
+	want, _ := ioutil.ReadFile("testdata/img/avatar.jpg")
+	if len(got) != len(want) {
+		t.Fatalf("want length of %d bytes, got %d", len(want), len(got))
+	}
+	for i, b := range got {
+		if want[i] != b {
+			t.Fatalf("want %s for byte no. %d, got %s", string(want[i]), i, string(b))
+		}
+	}
+}

@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	"willnorris.com/go/microformats"
 )
@@ -14,22 +17,22 @@ type hcard struct {
 }
 
 func fetchHcard(link string) (*hcard, error) {
-	url, err := url.Parse(link)
+	u, err := url.Parse(link)
 	if err != nil {
 		return nil, err
 	}
 
-	if url.Scheme == "" {
-		url.Scheme = "http"
+	if u.Scheme == "" {
+		u.Scheme = "http"
 	}
 
-	res, err := http.Get(url.String())
+	res, err := http.Get(u.String())
 	if err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
 
-	d := microformats.Parse(res.Body, url)
+	d := microformats.Parse(res.Body, res.Request.URL)
 
 	var hc hcard
 
@@ -65,6 +68,22 @@ func getHcard(link string) *hcard {
 		return &h
 	}
 	return hc
+}
+
+func getModTime(res *http.Response) time.Time {
+	lm, ok := res.Header["Last-Modified"]
+	if !ok {
+		return time.Now()
+	}
+	if len(lm) != 1 {
+		return time.Now()
+	}
+
+	t, err := time.Parse(time.RFC1123, lm[0])
+	if err != nil {
+		return time.Now()
+	}
+	return t
 }
 
 func serveHcard(w http.ResponseWriter, req *http.Request) {
@@ -108,7 +127,22 @@ func servePhoto(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.Write([]byte("not yet implemented"))
+	res, err := http.Get(hc.Photo)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer res.Body.Close()
+
+	bb, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	t := getModTime(res)
+
+	http.ServeContent(w, req, "", t, bytes.NewReader(bb))
 }
 
 func main() {
