@@ -13,7 +13,8 @@ import (
 )
 
 type hcard struct {
-	Photo string `json:"uphoto,omitempty"`
+	Source string `json:"source,omitempty"`
+	Photo  string `json:"uphoto,omitempty"`
 }
 
 func fetchHcard(link string) (*hcard, error) {
@@ -35,6 +36,7 @@ func fetchHcard(link string) (*hcard, error) {
 	d := microformats.Parse(res.Body, res.Request.URL)
 
 	var hc hcard
+	hc.Source = res.Request.URL.String()
 
 	for _, i := range d.Items {
 		for _, t := range i.Type {
