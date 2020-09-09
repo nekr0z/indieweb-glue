@@ -13,7 +13,7 @@ import (
 )
 
 type hcard struct {
-	Photo string `json:"u-photo,omitempty"`
+	Photo string `json:"uphoto,omitempty"`
 }
 
 func fetchHcard(link string) (*hcard, error) {
