@@ -105,6 +105,7 @@ func serveHcard(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
 }
@@ -142,6 +143,7 @@ func servePhoto(w http.ResponseWriter, req *http.Request) {
 
 	t := getModTime(res)
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	http.ServeContent(w, req, "", t, bytes.NewReader(bb))
 }
 
