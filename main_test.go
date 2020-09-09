@@ -67,7 +67,7 @@ func TestServeHcard(t *testing.T) {
 		return
 	}
 
-	want := fmt.Sprintf(`{"source":"%s","uphoto":"%s/img/avatar.jpg"}`, ms.URL, ms.URL)
+	want := fmt.Sprintf(`{"source":"%s","pname":"Евгений Кузнецов","uphoto":"%s/img/avatar.jpg"}`, ms.URL, ms.URL)
 	if string(b) != want {
 		t.Fatalf("want %s, got %s", want, b)
 	}

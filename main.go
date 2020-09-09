@@ -14,6 +14,7 @@ import (
 
 type hcard struct {
 	Source string `json:"source,omitempty"`
+	PName  string `json:"pname,omitempty"`
 	Photo  string `json:"uphoto,omitempty"`
 }
 
@@ -40,8 +41,10 @@ func fetchHcard(link string) (*hcard, error) {
 
 	for _, i := range d.Items {
 		for _, t := range i.Type {
-			if t == "h-card" {
+			switch t {
+			case "h-card":
 				hc.Photo = parsePhotoUrl(i)
+				hc.PName = parsePName(i)
 			}
 		}
 	}
@@ -59,6 +62,19 @@ func parsePhotoUrl(mf *microformats.Microformat) (url string) {
 		url = v["value"]
 	case string:
 		url = v
+	}
+	return
+}
+
+func parsePName(mf *microformats.Microformat) (name string) {
+	if len(mf.Properties["name"]) < 1 {
+		return
+	}
+	switch v := mf.Properties["name"][0].(type) {
+	case map[string]string:
+		name = v["value"]
+	case string:
+		name = v
 	}
 	return
 }
