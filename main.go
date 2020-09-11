@@ -3,13 +3,12 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"time"
-
-	"willnorris.com/go/microformats"
 )
 
 type hcard struct {
@@ -34,49 +33,23 @@ func fetchHcard(link string) (*hcard, error) {
 	}
 	defer res.Body.Close()
 
-	d := microformats.Parse(res.Body, res.Request.URL)
+	i := getRepresentativeHcard(res)
+	if i == nil {
+		return nil, fmt.Errorf("no representative h-card found")
+	}
 
 	var hc hcard
 	hc.Source = res.Request.URL.String()
 
-	for _, i := range d.Items {
-		for _, t := range i.Type {
-			switch t {
-			case "h-card":
-				hc.Photo = parsePhotoUrl(i)
-				hc.PName = parsePName(i)
-			}
+	for _, t := range i.Type {
+		switch t {
+		case "h-card":
+			hc.Photo = parseProperty(i, "photo")
+			hc.PName = parseProperty(i, "name")
 		}
 	}
 
 	return &hc, nil
-}
-
-func parsePhotoUrl(mf *microformats.Microformat) (url string) {
-	if len(mf.Properties["photo"]) < 1 {
-		return
-	}
-
-	switch v := mf.Properties["photo"][0].(type) {
-	case map[string]string:
-		url = v["value"]
-	case string:
-		url = v
-	}
-	return
-}
-
-func parsePName(mf *microformats.Microformat) (name string) {
-	if len(mf.Properties["name"]) < 1 {
-		return
-	}
-	switch v := mf.Properties["name"][0].(type) {
-	case map[string]string:
-		name = v["value"]
-	case string:
-		name = v
-	}
-	return
 }
 
 func getHcard(link string) *hcard {

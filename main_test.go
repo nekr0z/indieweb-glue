@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 )
 
@@ -14,9 +15,10 @@ func TestFetchHcard(t *testing.T) {
 		link string
 		want string
 	}{
-		"evgeny": {"", "/img/avatar.jpg"},
+		"evgeny": {"", "%s/img/avatar.jpg"},
 		"tim":    {"/tim.html", ""},
-		"aaron":  {"/aaron.html", "/images/profile.jpg"},
+		"aaron":  {"/aaron.html", "%s/images/profile.jpg"},
+		"ruxton": {"/ignition.html", "https://secure.gravatar.com/avatar/8401de9afbdfada34ca21681a2394340?s=125&d=default&r=g"},
 	}
 
 	fs := http.FileServer(http.Dir("testdata"))
@@ -30,9 +32,9 @@ func TestFetchHcard(t *testing.T) {
 				t.Fatalf("error: %v", err)
 			}
 
-			var want string
-			if tc.want != "" {
-				want = fmt.Sprintf("%s%s", s.URL, tc.want)
+			want := fmt.Sprintf(tc.want, s.URL)
+			if strings.Contains(want, "%!(EXTRA string") {
+				want = tc.want
 			}
 			got := hc.Photo
 
