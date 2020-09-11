@@ -31,7 +31,6 @@ func fetchHcard(link string) (*hcard, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
 
 	i := getRepresentativeHcard(res)
 	if i == nil {
