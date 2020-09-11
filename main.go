@@ -98,7 +98,7 @@ func serveHcard(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
+	_, _ = w.Write(js)
 }
 
 func servePhoto(w http.ResponseWriter, req *http.Request) {
@@ -147,5 +147,5 @@ func main() {
 	http.HandleFunc("/api/hcard", serveHcard)
 	http.HandleFunc("/api/photo", servePhoto)
 
-	http.ListenAndServe(":"+port, nil)
+	_ = http.ListenAndServe(":"+port, nil)
 }
