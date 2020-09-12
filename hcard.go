@@ -14,19 +14,8 @@ func getRepresentativeHcard(r *http.Response) (mf *microformats.Microformat) {
 	if err != nil {
 		return
 	}
-	nodes := doc.Find(".h-card").Nodes
 
-	hcards := []*microformats.Microformat{}
-	for _, n := range nodes {
-		d := microformats.ParseNode(n, r.Request.URL)
-		for _, i := range d.Items {
-			for _, t := range i.Type {
-				if t == "h-card" {
-					hcards = append(hcards, i)
-				}
-			}
-		}
-	}
+	hcards := getHcards(doc, r.Request.URL)
 
 	// check 1 (first h-card where uid == url == page URL)
 	for _, hc := range hcards {
@@ -51,6 +40,23 @@ func getRepresentativeHcard(r *http.Response) (mf *microformats.Microformat) {
 	if len(hcards) == 1 {
 		if matchURLs(parseProperty(hcards[0], "url"), r.Request.URL.String()) {
 			return hcards[0]
+		}
+	}
+
+	return
+}
+
+func getHcards(doc *goquery.Document, u *url.URL) (hcards []*microformats.Microformat) {
+	nodes := doc.Find(".h-card").Nodes
+
+	for _, n := range nodes {
+		d := microformats.ParseNode(n, u)
+		for _, i := range d.Items {
+			for _, t := range i.Type {
+				if t == "h-card" {
+					hcards = append(hcards, i)
+				}
+			}
 		}
 	}
 
