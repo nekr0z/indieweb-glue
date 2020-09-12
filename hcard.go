@@ -1,31 +1,30 @@
 package main
 
 import (
-	"net/http"
+	"io"
 	"net/url"
 
 	"github.com/PuerkitoBio/goquery"
 	mf "willnorris.com/go/microformats"
 )
 
-func getRepresentativeHcard(r *http.Response) (m *mf.Microformat) {
-	defer r.Body.Close()
-	doc, err := goquery.NewDocumentFromReader(r.Body)
+func getRepresentativeHcard(page io.Reader, url *url.URL) (m *mf.Microformat) {
+	doc, err := goquery.NewDocumentFromReader(page)
 	if err != nil {
 		return
 	}
 
-	hcards := getHcards(doc, r.Request.URL)
+	hcards := getHcards(doc, url)
 
 	// check 1 (first h-card where uid == url == page URL)
 	for _, hc := range hcards {
-		if matchUrlUid(hc, r.Request.URL) {
+		if matchUrlUid(hc, url) {
 			return hc
 		}
 	}
 
 	// check 2 (first h-card where url has a rel=me relation)
-	d := mf.ParseNode(doc.Get(0), r.Request.URL)
+	d := mf.ParseNode(doc.Get(0), url)
 	if mm, ok := d.Rels["me"]; ok {
 		for _, hc := range hcards {
 			for _, me := range mm {
@@ -38,7 +37,7 @@ func getRepresentativeHcard(r *http.Response) (m *mf.Microformat) {
 
 	// check 3 (single h-card and url == page URL)
 	if len(hcards) == 1 {
-		if matchURLs(parseProperty(hcards[0], "url"), r.Request.URL.String()) {
+		if matchURLs(parseProperty(hcards[0], "url"), url.String()) {
 			return hcards[0]
 		}
 	}

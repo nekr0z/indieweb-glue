@@ -31,8 +31,9 @@ func fetchHcard(link string) (*hcard, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 
-	i := getRepresentativeHcard(res)
+	i := getRepresentativeHcard(res.Body, res.Request.URL)
 	if i == nil {
 		return nil, fmt.Errorf("no representative h-card found")
 	}
