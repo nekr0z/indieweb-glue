@@ -5,10 +5,10 @@ import (
 	"net/url"
 
 	"github.com/PuerkitoBio/goquery"
-	"willnorris.com/go/microformats"
+	mf "willnorris.com/go/microformats"
 )
 
-func getRepresentativeHcard(r *http.Response) (mf *microformats.Microformat) {
+func getRepresentativeHcard(r *http.Response) (m *mf.Microformat) {
 	defer r.Body.Close()
 	doc, err := goquery.NewDocumentFromReader(r.Body)
 	if err != nil {
@@ -25,11 +25,11 @@ func getRepresentativeHcard(r *http.Response) (mf *microformats.Microformat) {
 	}
 
 	// check 2 (first h-card where url has a rel=me relation)
-	d := microformats.ParseNode(doc.Get(0), r.Request.URL)
-	if me, ok := d.Rels["me"]; ok {
+	d := mf.ParseNode(doc.Get(0), r.Request.URL)
+	if mm, ok := d.Rels["me"]; ok {
 		for _, hc := range hcards {
-			for _, m := range me {
-				if matchURLs(parseProperty(hc, "url"), m) {
+			for _, me := range mm {
+				if matchURLs(parseProperty(hc, "url"), me) {
 					return hc
 				}
 			}
@@ -46,11 +46,11 @@ func getRepresentativeHcard(r *http.Response) (mf *microformats.Microformat) {
 	return
 }
 
-func getHcards(doc *goquery.Document, u *url.URL) (hcards []*microformats.Microformat) {
+func getHcards(doc *goquery.Document, u *url.URL) (hcards []*mf.Microformat) {
 	nodes := doc.Find(".h-card").Nodes
 
 	for _, n := range nodes {
-		d := microformats.ParseNode(n, u)
+		d := mf.ParseNode(n, u)
 		for _, i := range d.Items {
 			for _, t := range i.Type {
 				if t == "h-card" {
@@ -63,12 +63,12 @@ func getHcards(doc *goquery.Document, u *url.URL) (hcards []*microformats.Microf
 	return
 }
 
-func parseProperty(mf *microformats.Microformat, property string) (value string) {
-	if len(mf.Properties[property]) < 1 {
+func parseProperty(m *mf.Microformat, property string) (value string) {
+	if len(m.Properties[property]) < 1 {
 		return
 	}
 
-	switch v := mf.Properties[property][0].(type) {
+	switch v := m.Properties[property][0].(type) {
 	case map[string]string:
 		value = v["value"]
 	case string:
@@ -77,7 +77,7 @@ func parseProperty(mf *microformats.Microformat, property string) (value string)
 	return
 }
 
-func matchUrlUid(hc *microformats.Microformat, u *url.URL) bool {
+func matchUrlUid(hc *mf.Microformat, u *url.URL) bool {
 	uidString := parseProperty(hc, "uid")
 	if uidString == "" {
 		return false
