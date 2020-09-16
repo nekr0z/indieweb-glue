@@ -27,7 +27,7 @@ func TestFetchHcard(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			hc, err := fetchHcard(fmt.Sprintf("%s%s", s.URL, tc.link))
+			hc, _, err := fetchHcard(fmt.Sprintf("%s%s", s.URL, tc.link))
 			if err != nil {
 				t.Fatalf("error: %v", err)
 			}

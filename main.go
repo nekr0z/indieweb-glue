@@ -27,10 +27,10 @@ func copyHeader(m map[string][]string, w http.ResponseWriter, h string) {
 	}
 }
 
-func fetchHcard(link string) (*hcard, error) {
+func fetchHcard(link string) (*hcard, *http.Header, error) {
 	u, err := url.Parse(link)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if u.Scheme == "" {
@@ -39,13 +39,13 @@ func fetchHcard(link string) (*hcard, error) {
 
 	res, err := http.Get(u.String())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer res.Body.Close()
 
 	i := getRepresentativeHcard(res.Body, res.Request.URL)
 	if i == nil {
-		return nil, fmt.Errorf("no representative h-card found")
+		return nil, &res.Header, fmt.Errorf("no representative h-card found")
 	}
 
 	var hc hcard
@@ -59,16 +59,17 @@ func fetchHcard(link string) (*hcard, error) {
 		}
 	}
 
-	return &hc, nil
+	return &hc, &res.Header, nil
 }
 
-func getHcard(link string) *hcard {
-	hc, err := fetchHcard(link)
+func getHcard(link string) (*hcard, map[string][]string) {
+	hc, hd, err := fetchHcard(link)
 	if err != nil {
 		h := hcard{}
-		return &h
+		hd := map[string][]string{}
+		return &h, hd
 	}
-	return hc
+	return hc, *hd
 }
 
 func getModTime(res *http.Response) time.Time {
@@ -87,6 +88,13 @@ func getModTime(res *http.Response) time.Time {
 	return t
 }
 
+func setResponseHeaders(w http.ResponseWriter, h map[string][]string) {
+	copyHeader(h, w, "cache-control")
+	copyHeader(h, w, "expires")
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 func serveHcard(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
@@ -98,7 +106,7 @@ func serveHcard(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "no URL specified", http.StatusBadRequest)
 		return
 	}
-	hc := getHcard(req.Form["url"][0])
+	hc, hd := getHcard(req.Form["url"][0])
 
 	js, err := json.Marshal(hc)
 	if err != nil {
@@ -106,7 +114,9 @@ func serveHcard(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	copyHeader(hd, w, "last-modified")
+	setResponseHeaders(w, hd)
+
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(js)
 }
@@ -122,7 +132,7 @@ func servePhoto(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "no URL specified", http.StatusBadRequest)
 		return
 	}
-	hc := getHcard(req.Form["url"][0])
+	hc, _ := getHcard(req.Form["url"][0])
 
 	if hc.Photo == "" {
 		http.Error(w, "no photo", http.StatusNotFound)
@@ -144,11 +154,7 @@ func servePhoto(w http.ResponseWriter, req *http.Request) {
 
 	t := getModTime(res)
 	hd := res.Header
-	copyHeader(hd, w, "etag")
-	copyHeader(hd, w, "cache-control")
-	copyHeader(hd, w, "expires")
-
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	setResponseHeaders(w, hd)
 	http.ServeContent(w, req, "", t, bytes.NewReader(bb))
 }
 
