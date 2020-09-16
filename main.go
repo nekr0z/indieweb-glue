@@ -236,7 +236,7 @@ func main() {
 
 	c := newMemoryCache()
 
-	http.Handle("/api/hcard", cached(c, serveHcard))
+	http.HandleFunc("/api/hcard", serveHcard)
 	http.Handle("/api/photo", cached(c, servePhoto))
 
 	_ = http.ListenAndServe(":"+port, nil)
