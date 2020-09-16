@@ -17,6 +17,14 @@ type hcard struct {
 	Photo  string `json:"uphoto,omitempty"`
 }
 
+func copyHeader(r *http.Response, w http.ResponseWriter, h string) {
+	vv := r.Header.Values(h)
+	w.Header().Del(h)
+	for _, v := range vv {
+		w.Header().Add(h, v)
+	}
+}
+
 func fetchHcard(link string) (*hcard, error) {
 	u, err := url.Parse(link)
 	if err != nil {
@@ -133,6 +141,9 @@ func servePhoto(w http.ResponseWriter, req *http.Request) {
 	}
 
 	t := getModTime(res)
+	copyHeader(res, w, "etag")
+	copyHeader(res, w, "cache-control")
+	copyHeader(res, w, "expires")
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	http.ServeContent(w, req, "", t, bytes.NewReader(bb))

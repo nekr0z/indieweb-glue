@@ -109,3 +109,26 @@ func TestServePhoto(t *testing.T) {
 		}
 	}
 }
+func TestCopyHeader(t *testing.T) {
+	r := &http.Response{
+		StatusCode: 200,
+		Header: http.Header{
+			"Etag": []string{`"1553c-5a234afb92e92"`},
+		},
+	}
+	w := httptest.NewRecorder()
+
+	r.Header.Add("cache-control", "max-age=2592000")
+	r.Header.Add("cache-control", "public")
+
+	copyHeader(r, w, "Etag")
+
+	res := w.Result()
+	h := res.Header.Values("Etag")
+	if len(h) != 1 {
+		t.Fatalf("etag header length: want %d, got %d", 1, len(h))
+	}
+	if h[0] != `"1553c-5a234afb92e92"` {
+		t.Fatalf("etag header: want \"1553c-5a234afb92e92\", got %s", h[1])
+	}
+}
