@@ -227,6 +227,11 @@ func canCache(h http.Header) (bool, time.Time) {
 		return true, exp
 	}
 
+	// if no Cache-Control is set, cache for 24 hours
+	if len(c) == 0 {
+		return true, time.Now().Add(time.Hour * 24)
+	}
+
 	return false, time.Unix(0, 0)
 }
 
