@@ -19,11 +19,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path"
 	"time"
 
 	"github.com/memcachier/mc/v3"
@@ -142,6 +144,23 @@ func serveHcard(w http.ResponseWriter, req *http.Request) {
 	_, _ = w.Write(js)
 }
 
+func serveInfo(w http.ResponseWriter, req *http.Request) {
+	fp := path.Join("tpl", "index.html")
+	tmpl, err := template.ParseFiles(fp)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Cache-Control", "public")
+	w.Header().Add("Cache-Control", "max-age=3600")
+
+	d := struct{ Addr string }{"https://indieweb-glue.herokuapp.com"}
+	if err := tmpl.Execute(w, d); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
 func servePhoto(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
@@ -233,6 +252,7 @@ func main() {
 
 	http.HandleFunc("/api/hcard", serveHcard)
 	http.Handle("/api/photo", cached(c, servePhoto))
+	http.Handle("/", cached(c, serveInfo))
 
 	_ = http.ListenAndServe(":"+port, nil)
 }

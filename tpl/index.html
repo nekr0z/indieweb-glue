@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><title>IndieWeb-glue</title></head>
+<body>
+<h1>IndieWeb-glue</h1>
+<p>This web service answers users' requests by extracting information from <a href="https://indieweb.org/">IndieWeb</a>-enabled websites and presenting it in particular way. It does not store any information other than caching response data to facilitate quicker responses; all the information about various websites presented by this service is hosted on the said websites in a publicly-available manner; this web service serves as a proxy between those websites and the end-user. This web service claims no rights and holds no responsibilities concerning the information provided by the said websites.</p>
+<p>This web service is hosted on <a href="https://heroku.com">Heroku</a> as a "Free/Hobby" project. Please use the link in the previous sentence to learn about Heroku's privacy policy and the way they store and use your data. The author of this web service only gets as much information about the users of the service as Heroku provides for Hobby projects, and uses it only to debug and improve this web service.</p>
+<p>This web service is still being developed. It will probably change and hopefully do more things in the future. However, the general concept will remain the same privacy-wise: the service stores as little personal data as technologically feasible, and provides no data other than publicly available already.</p>
+<h2>API</h2>
+<p><code>{{ .Addr -}}/api/hcard?url=URL</code> returns a JSON containing some information found in the <a href="http://microformats.org/wiki/representative-h-card-parsing">representative h-card</a> on the page referenced by <code>URL</code> (if indeed there is a representative h-card).</p>
+<p><code>{{ .Addr -}}/apt/photo?url=URL</code> returns the file referenced in the <code>u-photo</code> property of the abovementioned h-card.</p>
+<h2>Author</h2>
+<p>This web service is a hobby project by <a href="https://evgenykuznetsov.org/en/">Evgeny "nekr0z" Kuznetsov</a>.</p>
+</body>
+</html>
