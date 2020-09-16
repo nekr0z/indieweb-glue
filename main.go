@@ -24,18 +24,10 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/memcachier/mc/v3"
 )
-
-type hcard struct {
-	Source string `json:"source,omitempty"`
-	PName  string `json:"pname,omitempty"`
-	Photo  string `json:"uphoto,omitempty"`
-}
 
 func containsStr(ss []string, s string) bool {
 	for _, v := range ss {
@@ -217,38 +209,6 @@ func cached(c cache, handler func(w http.ResponseWriter, r *http.Request)) http.
 			_, _ = w.Write(content)
 		}
 	})
-}
-
-func canCache(h http.Header) (bool, time.Time) {
-	c := h.Values("Cache-Control")
-
-	// if no Cache-Control is set, cache for 24 hours
-	if len(c) == 0 {
-		return true, time.Now().Add(time.Hour * 24)
-	}
-
-	if !containsStr(c, "public") {
-		return false, time.Unix(0, 0)
-	}
-
-	for _, v := range c {
-		if strings.HasPrefix(v, "max-age=") {
-			seconds, err := strconv.Atoi(strings.TrimPrefix(v, "max-age="))
-			if err != nil {
-				return false, time.Unix(0, 0)
-			}
-			return true, time.Now().Add(time.Second * time.Duration(seconds))
-
-		}
-	}
-
-	ex := h.Get("Expires")
-	exp, err := time.Parse(time.RFC1123, ex)
-	if err != nil {
-		return true, exp
-	}
-
-	return false, time.Unix(0, 0)
 }
 
 func main() {

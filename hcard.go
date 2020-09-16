@@ -23,6 +23,12 @@ import (
 	mf "willnorris.com/go/microformats"
 )
 
+type hcard struct {
+	Source string `json:"source,omitempty"`
+	PName  string `json:"pname,omitempty"`
+	Photo  string `json:"uphoto,omitempty"`
+}
+
 func getRepresentativeHcard(page io.Reader, url *url.URL) (m *mf.Microformat) {
 	doc, err := goquery.NewDocumentFromReader(page)
 	if err != nil {
