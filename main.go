@@ -173,9 +173,8 @@ func servePhoto(w http.ResponseWriter, req *http.Request) {
 func cached(c cache, handler func(w http.ResponseWriter, r *http.Request)) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		content, exp := c.get(r.RequestURI)
-		fmt.Printf("%s ", r.RequestURI)
 		if content != nil {
-			fmt.Println("cache hit")
+			fmt.Printf("%s cache hit\n", r.RequestURI)
 			w.Header().Set("Cache-Control", "public")
 			w.Header().Set("Expires", exp.Format(time.RFC1123))
 			w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -193,9 +192,9 @@ func cached(c cache, handler func(w http.ResponseWriter, r *http.Request)) http.
 
 			if ok, exp := canCache(res.Header); ok {
 				c.set(r.RequestURI, content, exp)
-				fmt.Printf("cached until %s\n", exp.Format(time.RFC1123))
+				fmt.Printf("%s cached until %s\n", r.RequestURI, exp.Format(time.RFC1123))
 			} else {
-				fmt.Println("not cached")
+				fmt.Printf("%s not cached\n", r.RequestURI)
 			}
 
 			_, _ = w.Write(content)
