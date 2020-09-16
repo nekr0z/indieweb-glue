@@ -110,19 +110,19 @@ func TestServePhoto(t *testing.T) {
 	}
 }
 func TestCopyHeader(t *testing.T) {
-	r := &http.Response{
-		StatusCode: 200,
-		Header: http.Header{
-			"Etag": []string{`"1553c-5a234afb92e92"`},
+	hd := map[string][]string{
+		"Etag": []string{
+			`"1553c-5a234afb92e92"`,
+		},
+		"Cache-Control": []string{
+			"max-age=2592000",
+			"public",
 		},
 	}
 	w := httptest.NewRecorder()
 
-	r.Header.Add("cache-control", "max-age=2592000")
-	r.Header.Add("cache-control", "public")
-
-	copyHeader(r, w, "Etag")
-	copyHeader(r, w, "Cache-Control")
+	copyHeader(hd, w, "etag")
+	copyHeader(hd, w, "cache-control")
 
 	res := w.Result()
 	h := res.Header.Values("Etag")
@@ -135,6 +135,6 @@ func TestCopyHeader(t *testing.T) {
 
 	h = res.Header.Values("Cache-Control")
 	if len(h) != 2 {
-		t.Fatalf("etag header length: want %d, got %d", 1, len(h))
+		t.Fatalf("cache-control header length: want %d, got %d", 2, len(h))
 	}
 }

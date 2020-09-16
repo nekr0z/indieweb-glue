@@ -17,11 +17,13 @@ type hcard struct {
 	Photo  string `json:"uphoto,omitempty"`
 }
 
-func copyHeader(r *http.Response, w http.ResponseWriter, h string) {
-	vv := r.Header.Values(h)
-	w.Header().Del(h)
-	for _, v := range vv {
-		w.Header().Add(h, v)
+func copyHeader(m map[string][]string, w http.ResponseWriter, h string) {
+	h = http.CanonicalHeaderKey(h)
+	if vv, ok := m[h]; ok {
+		w.Header().Del(h)
+		for _, v := range vv {
+			w.Header().Add(h, v)
+		}
 	}
 }
 
@@ -141,9 +143,10 @@ func servePhoto(w http.ResponseWriter, req *http.Request) {
 	}
 
 	t := getModTime(res)
-	copyHeader(res, w, "etag")
-	copyHeader(res, w, "cache-control")
-	copyHeader(res, w, "expires")
+	hd := res.Header
+	copyHeader(hd, w, "etag")
+	copyHeader(hd, w, "cache-control")
+	copyHeader(hd, w, "expires")
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	http.ServeContent(w, req, "", t, bytes.NewReader(bb))
