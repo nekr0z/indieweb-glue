@@ -244,8 +244,10 @@ func main() {
 		client := mc.NewMC(mcSrv, mcUser, mcPass)
 		defer client.Quit()
 		c = newMcCache(client)
+		fmt.Println("using memcached")
 	} else {
 		c = newMemoryCache()
+		fmt.Println("using memory cache")
 	}
 
 	http.HandleFunc("/api/hcard", serveHcard)
