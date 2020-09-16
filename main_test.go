@@ -122,6 +122,7 @@ func TestCopyHeader(t *testing.T) {
 	r.Header.Add("cache-control", "public")
 
 	copyHeader(r, w, "Etag")
+	copyHeader(r, w, "Cache-Control")
 
 	res := w.Result()
 	h := res.Header.Values("Etag")
@@ -130,5 +131,10 @@ func TestCopyHeader(t *testing.T) {
 	}
 	if h[0] != `"1553c-5a234afb92e92"` {
 		t.Fatalf("etag header: want \"1553c-5a234afb92e92\", got %s", h[1])
+	}
+
+	h = res.Header.Values("Cache-Control")
+	if len(h) != 2 {
+		t.Fatalf("etag header length: want %d, got %d", 1, len(h))
 	}
 }
