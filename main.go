@@ -173,6 +173,7 @@ func servePhoto(w http.ResponseWriter, req *http.Request) {
 func cached(c cache, handler func(w http.ResponseWriter, r *http.Request)) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		content, exp := c.get(r.RequestURI)
+		fmt.Printf("%s ", r.RequestURI)
 		if content != nil {
 			fmt.Println("cache hit")
 			w.Header().Set("Cache-Control", "public")
