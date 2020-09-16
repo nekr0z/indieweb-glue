@@ -4,6 +4,10 @@ github.com/andybalholm/cascadia v1.0.0 h1:hOCXnnZ5A+3eVDX8pvgl4kofXv2ELss0bKcqRy
 github.com/andybalholm/cascadia v1.0.0/go.mod h1:GsXiBklL0woXo1j/WYWtSYYC4ouU9PqHO0sqidkEA4Y=
 github.com/google/go-cmp v0.4.0/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
+github.com/memcachier/mc v1.0.0 h1:Zb1uC+26UOKXaRUAX+rOqMGrpkjSHpA+YekcgdHndiY=
+github.com/memcachier/mc v2.0.1+incompatible h1:s8EDz0xrJLP8goitwZOoq1vA/sm0fPS4X3KAF0nyhWQ=
+github.com/memcachier/mc/v3 v3.0.1 h1:Os/fUl/8c+hc1qWgjv5hNK0JI6GxKUOuehzB/UmjLP0=
+github.com/memcachier/mc/v3 v3.0.1/go.mod h1:GzjocBahcXPxt2cmqzknrgqCOmMxiSzhVKPOe90Tpug=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/net v0.0.0-20180218175443-cbe0f9307d01/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/net v0.0.0-20181114220301-adae6a3d119a/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=

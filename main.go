@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/memcachier/mc/v3"
 )
 
 type hcard struct {
@@ -234,7 +236,17 @@ func main() {
 		port = "8080"
 	}
 
-	c := newMemoryCache()
+	var c cache
+	mcPass := os.Getenv("MEMCACHIER_PASSWORD")
+	mcSrv := os.Getenv("MEMCACHIER_SERVERS")
+	mcUser := os.Getenv("MEMCACHIER_USERNAME")
+	if mcPass != "" && mcSrv != "" && mcUser != "" {
+		client := mc.NewMC(mcSrv, mcUser, mcPass)
+		defer client.Quit()
+		c = newMcCache(client)
+	} else {
+		c = newMemoryCache()
+	}
 
 	http.HandleFunc("/api/hcard", serveHcard)
 	http.Handle("/api/photo", cached(c, servePhoto))
