@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -15,6 +18,15 @@ type hcard struct {
 	Source string `json:"source,omitempty"`
 	PName  string `json:"pname,omitempty"`
 	Photo  string `json:"uphoto,omitempty"`
+}
+
+func containsStr(ss []string, s string) bool {
+	for _, v := range ss {
+		if v == s {
+			return true
+		}
+	}
+	return false
 }
 
 func copyHeader(m map[string][]string, w http.ResponseWriter, h string) {
@@ -158,14 +170,74 @@ func servePhoto(w http.ResponseWriter, req *http.Request) {
 	http.ServeContent(w, req, "", t, bytes.NewReader(bb))
 }
 
+func cached(c cache, handler func(w http.ResponseWriter, r *http.Request)) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		content, exp := c.get(r.RequestURI)
+		if content != nil {
+			fmt.Println("cache hit")
+			w.Header().Set("Cache-Control", "public")
+			w.Header().Set("Expires", exp.Format(time.RFC1123))
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			_, _ = w.Write(content)
+		} else {
+			re := httptest.NewRecorder()
+			handler(re, r)
+
+			content := re.Body.Bytes()
+			res := re.Result()
+			for k := range res.Header {
+				copyHeader(res.Header, w, k)
+			}
+			w.WriteHeader(re.Code)
+
+			if ok, exp := canCache(res.Header); ok {
+				c.set(r.RequestURI, content, exp)
+				fmt.Printf("cached until %s\n", exp.Format(time.RFC1123))
+			} else {
+				fmt.Println("not cached")
+			}
+
+			_, _ = w.Write(content)
+		}
+	})
+}
+
+func canCache(h http.Header) (bool, time.Time) {
+	c := h.Values("Cache-Control")
+	if !containsStr(c, "public") {
+		return false, time.Unix(0, 0)
+	}
+
+	for _, v := range c {
+		if strings.HasPrefix(v, "max-age=") {
+			seconds, err := strconv.Atoi(strings.TrimPrefix(v, "max-age="))
+			if err != nil {
+				return false, time.Unix(0, 0)
+			}
+			return true, time.Now().Add(time.Second * time.Duration(seconds))
+
+		}
+	}
+
+	ex := h.Get("Expires")
+	exp, err := time.Parse(time.RFC1123, ex)
+	if err != nil {
+		return true, exp
+	}
+
+	return false, time.Unix(0, 0)
+}
+
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	http.HandleFunc("/api/hcard", serveHcard)
-	http.HandleFunc("/api/photo", servePhoto)
+	c := newMemoryCache()
+
+	http.Handle("/api/hcard", cached(c, serveHcard))
+	http.Handle("/api/photo", cached(c, servePhoto))
 
 	_ = http.ListenAndServe(":"+port, nil)
 }
