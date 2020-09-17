@@ -87,6 +87,10 @@ func (c *mcCache) get(key string) ([]byte, time.Time) {
 	}
 
 	exp := time.Unix(int64(flag), 0)
+	if exp.Before(time.Now()) {
+		_ = c.client.Del(key)
+		return nil, time.Unix(0, 0)
+	}
 
 	content, err := base64.StdEncoding.DecodeString(val)
 	if err != nil {
