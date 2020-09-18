@@ -1,0 +1,32 @@
+language: go
+
+go:
+  - 1.14.x
+
+os: linux
+
+dist: bionic
+
+env:
+  - GO111MODULE=on
+
+before_install:
+
+install:
+  - bash <(curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.31.0)
+
+before_script:
+
+script:
+  - go vet ./...
+  - golangci-lint run
+  - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+  - go build
+
+cache:
+  directories:
+    - $HOME/.cache/go-build
+    - $HOME/gopath/pkg/mod
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
