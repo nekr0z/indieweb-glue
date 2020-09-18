@@ -115,7 +115,7 @@ func canCache(h http.Header) (bool, time.Time) {
 		return true, time.Now().Add(time.Hour * 24)
 	}
 
-	if !containsStr(c, "public") {
+	if containsStr(c, "private") || containsStr(c, "no-cache") {
 		return false, time.Unix(0, 0)
 	}
 
