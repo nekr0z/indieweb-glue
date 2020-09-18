@@ -23,13 +23,28 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
 	"path"
 	"time"
 
 	"github.com/memcachier/mc/v3"
 )
+
+func calculateExpiration(h, hd http.Header) (bool, time.Time) {
+	ok, expH := canCache(h)
+	if !ok {
+		return false, time.Now()
+	}
+	ok, expHd := canCache(hd)
+	if !ok {
+		return false, time.Now()
+	}
+
+	if expH.Before(expHd) {
+		return true, expH
+	}
+	return true, expHd
+}
 
 func containsStr(ss []string, s string) bool {
 	for _, v := range ss {
@@ -50,53 +65,45 @@ func copyHeader(m map[string][]string, w http.ResponseWriter, h string) {
 	}
 }
 
-func fetchHcard(link string) (*hcard, *http.Header, error) {
-	u, err := url.Parse(link)
-	if err != nil {
-		return nil, nil, err
+func getPhoto(c cache, link string) ([]byte, map[string][]string, error) {
+	key := "photo=" + link
+	content, exp := c.get(key)
+	if content != nil {
+		fmt.Printf("photo %s cache hit\n", link)
+		hd := map[string][]string{
+			"Cache-Control": []string{"public"},
+			"Expires":       []string{exp.Format(time.RFC1123)},
+		}
+		return content, hd, nil
 	}
 
-	if u.Scheme == "" {
-		u.Scheme = "http"
-	}
+	bb := []byte{}
+	hd := http.Header{}
 
-	res, err := http.Get(u.String())
+	res, err := http.Get(link)
 	if err != nil {
-		return nil, nil, err
+		return bb, hd, err
 	}
 	defer res.Body.Close()
 
-	i := getRepresentativeHcard(res.Body, res.Request.URL)
-	if i == nil {
-		return nil, &res.Header, fmt.Errorf("no representative h-card found")
-	}
-
-	var hc hcard
-	hc.Source = res.Request.URL.String()
-
-	for _, t := range i.Type {
-		switch t {
-		case "h-card":
-			hc.Photo = parseProperty(i, "photo")
-			hc.PName = parseProperty(i, "name")
-		}
-	}
-
-	return &hc, &res.Header, nil
-}
-
-func getHcard(link string) (*hcard, map[string][]string) {
-	hc, hd, err := fetchHcard(link)
+	bb, err = ioutil.ReadAll(res.Body)
 	if err != nil {
-		h := hcard{}
-		hd := map[string][]string{}
-		return &h, hd
+		return bb, hd, err
 	}
-	return hc, *hd
+
+	hd = res.Header.Clone()
+
+	if ok, exp := canCache(hd); ok {
+		c.set(key, bb, exp)
+		fmt.Printf("%s cached until %s\n", key, exp.Format(time.RFC1123))
+	} else {
+		fmt.Printf("%s not cached\n", key)
+	}
+	return bb, hd, nil
 }
 
-func getModTime(res *http.Response) time.Time {
-	lm, ok := res.Header["Last-Modified"]
+func getModTime(hd http.Header) time.Time {
+	lm, ok := hd["Last-Modified"]
 	if !ok {
 		return time.Now()
 	}
@@ -118,30 +125,31 @@ func setResponseHeaders(w http.ResponseWriter, h map[string][]string) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 }
 
-func serveHcard(w http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+func serveHcard(c cache) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		err := req.ParseForm()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if len(req.Form["url"]) < 1 {
+			http.Error(w, "no URL specified", http.StatusBadRequest)
+			return
+		}
+		hc, hd := getHcard(c, req.Form["url"][0])
+
+		js, err := json.Marshal(hc)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		setResponseHeaders(w, hd)
+
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(js)
 	}
-
-	if len(req.Form["url"]) < 1 {
-		http.Error(w, "no URL specified", http.StatusBadRequest)
-		return
-	}
-	hc, hd := getHcard(req.Form["url"][0])
-
-	js, err := json.Marshal(hc)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	copyHeader(hd, w, "last-modified")
-	setResponseHeaders(w, hd)
-
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(js)
 }
 
 func serveInfo(w http.ResponseWriter, req *http.Request) {
@@ -161,41 +169,43 @@ func serveInfo(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func servePhoto(w http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+func servePhoto(c cache) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, req *http.Request) {
+		err := req.ParseForm()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 
-	if len(req.Form["url"]) < 1 {
-		http.Error(w, "no URL specified", http.StatusBadRequest)
-		return
-	}
-	hc, _ := getHcard(req.Form["url"][0])
+		if len(req.Form["url"]) < 1 {
+			http.Error(w, "no URL specified", http.StatusBadRequest)
+			return
+		}
+		hc, hchd := getHcard(c, req.Form["url"][0])
 
-	if hc.Photo == "" {
-		http.Error(w, "no photo", http.StatusNotFound)
-		return
-	}
+		if hc.Photo == "" {
+			http.Error(w, "no photo", http.StatusNotFound)
+			return
+		}
 
-	res, err := http.Get(hc.Photo)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer res.Body.Close()
+		bb, hd, err := getPhoto(c, hc.Photo)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
 
-	bb, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+		if ok, exp := calculateExpiration(hchd, hd); ok {
+			w.Header().Set("Expires", exp.Format(time.RFC1123))
+			w.Header().Set("Cache-Control", "public")
+		} else {
+			w.Header().Set("Cache-Control", "no-cache")
+		}
 
-	t := getModTime(res)
-	hd := res.Header
-	setResponseHeaders(w, hd)
-	http.ServeContent(w, req, "", t, bytes.NewReader(bb))
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		t := getModTime(hd)
+		http.ServeContent(w, req, "", t, bytes.NewReader(bb))
+	}
 }
 
 func cached(c cache, handler func(w http.ResponseWriter, r *http.Request)) http.Handler {
@@ -250,8 +260,8 @@ func main() {
 		fmt.Println("using memory cache")
 	}
 
-	http.HandleFunc("/api/hcard", serveHcard)
-	http.Handle("/api/photo", cached(c, servePhoto))
+	http.HandleFunc("/api/hcard", serveHcard(c))
+	http.Handle("/api/photo", cached(c, servePhoto(c)))
 	http.Handle("/", cached(c, serveInfo))
 
 	_ = http.ListenAndServe(":"+port, nil)

@@ -16,8 +16,12 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"io"
+	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	mf "willnorris.com/go/microformats"
@@ -81,6 +85,84 @@ func getHcards(doc *goquery.Document, u *url.URL) (hcards []*mf.Microformat) {
 	}
 
 	return
+}
+
+func fetchHcard(link string) (*hcard, *http.Header, error) {
+	u, err := url.Parse(link)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if u.Scheme == "" {
+		u.Scheme = "http"
+	}
+
+	res, err := http.Get(u.String())
+	if err != nil {
+		return nil, nil, err
+	}
+	defer res.Body.Close()
+
+	i := getRepresentativeHcard(res.Body, res.Request.URL)
+	if i == nil {
+		return nil, &res.Header, fmt.Errorf("no representative h-card found")
+	}
+
+	var hc hcard
+	hc.Source = res.Request.URL.String()
+
+	for _, t := range i.Type {
+		switch t {
+		case "h-card":
+			hc.Photo = parseProperty(i, "photo")
+			hc.PName = parseProperty(i, "name")
+		}
+	}
+
+	return &hc, &res.Header, nil
+}
+
+func getHcard(c cache, link string) (*hcard, map[string][]string) {
+	key := "hcard=" + link
+	content, exp := c.get(key)
+	if content != nil {
+		fmt.Printf("hcard %s cache hit\n", link)
+		h := hcard{}
+		if err := json.Unmarshal(content, &h); err != nil {
+			fmt.Println("can't parse cached value")
+			goto NeedCard
+		}
+		hd := map[string][]string{
+			"Cache-Control": []string{"public"},
+			"Expires":       []string{exp.Format(time.RFC1123)},
+		}
+		return &h, hd
+	}
+
+NeedCard:
+	hc, hd, err := fetchHcard(link)
+	if err != nil {
+		return emptyHcard()
+	}
+
+	if ok, exp := canCache(*hd); ok {
+		content, err := json.Marshal(hc)
+		if err != nil {
+			fmt.Println("can't marshal hcard")
+			return hc, *hd
+		}
+		c.set(key, content, exp)
+		fmt.Printf("%s cached until %s\n", key, exp.Format(time.RFC1123))
+	} else {
+		fmt.Printf("%s not cached\n", key)
+	}
+	return hc, *hd
+}
+
+func emptyHcard() (*hcard, map[string][]string) {
+	h := hcard{}
+	hd := map[string][]string{}
+	return &h, hd
 }
 
 func parseProperty(m *mf.Microformat, property string) (value string) {

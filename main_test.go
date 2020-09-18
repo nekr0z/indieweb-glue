@@ -61,7 +61,8 @@ func TestFetchHcard(t *testing.T) {
 }
 
 func TestServeHcard(t *testing.T) {
-	s := httptest.NewServer(http.HandlerFunc(serveHcard))
+	c := newMemoryCache()
+	s := httptest.NewServer(http.HandlerFunc(serveHcard(c)))
 	defer s.Close()
 
 	fs := http.FileServer(http.Dir("testdata"))
@@ -91,7 +92,8 @@ func TestServeHcard(t *testing.T) {
 }
 
 func TestServePhoto(t *testing.T) {
-	s := httptest.NewServer(http.HandlerFunc(servePhoto))
+	c := newMemoryCache()
+	s := httptest.NewServer(http.HandlerFunc(servePhoto(c)))
 	defer s.Close()
 
 	fs := http.FileServer(http.Dir("testdata"))

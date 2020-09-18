@@ -132,7 +132,7 @@ func canCache(h http.Header) (bool, time.Time) {
 
 	ex := h.Get("Expires")
 	exp, err := time.Parse(time.RFC1123, ex)
-	if err != nil {
+	if err == nil {
 		return true, exp
 	}
 
