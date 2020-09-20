@@ -261,7 +261,7 @@ func main() {
 	}
 
 	http.HandleFunc("/api/hcard", serveHcard(c))
-	http.Handle("/api/photo", cached(c, servePhoto(c)))
+	http.HandleFunc("/api/photo", servePhoto(c))
 	http.Handle("/", cached(c, serveInfo))
 
 	_ = http.ListenAndServe(":"+port, nil)
