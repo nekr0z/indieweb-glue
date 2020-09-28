@@ -71,8 +71,8 @@ func getPhoto(c cache, link string) ([]byte, map[string][]string, error) {
 	if content != nil {
 		fmt.Printf("photo %s cache hit\n", link)
 		hd := map[string][]string{
-			"Cache-Control": []string{"public"},
-			"Expires":       []string{exp.Format(time.RFC1123)},
+			"Cache-Control": {"public"},
+			"Expires":       {exp.Format(time.RFC1123)},
 		}
 		return content, hd, nil
 	}
