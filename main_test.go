@@ -102,7 +102,7 @@ func TestServeEmptyHcard(t *testing.T) {
 
 	u, _ := url.Parse(s.URL)
 	v := url.Values{}
-	v.Add("url", ms.URL+"404.html")
+	v.Add("url", ms.URL+"/404.html")
 	u.RawQuery = v.Encode()
 
 	res, err := http.Get(u.String())

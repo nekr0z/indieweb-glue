@@ -110,9 +110,9 @@ func (c *mcCache) set(key string, content []byte, exp time.Time) {
 func canCache(h http.Header) (bool, time.Time) {
 	c := h.Values("Cache-Control")
 
-	// if no Cache-Control is set, cache for 24 hours
+	// if no Cache-Control is set, cache for 1 hour
 	if len(c) == 0 {
-		return true, time.Now().Add(time.Hour * 24)
+		return true, time.Now().Add(time.Hour)
 	}
 
 	if containsStr(c, "private") || containsStr(c, "no-cache") {
