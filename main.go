@@ -145,6 +145,10 @@ func serveHcard(c cache) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
+		if string(js) == `{}` {
+			http.Error(w, "no representative hcard at URL", http.StatusNotFound)
+		}
+
 		setResponseHeaders(w, hd)
 
 		w.Header().Set("Content-Type", "application/json")
