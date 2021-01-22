@@ -24,7 +24,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/signal"
 	"path"
+	"syscall"
 	"time"
 
 	"github.com/memcachier/mc/v3"
@@ -245,6 +247,7 @@ func cached(c cache, handler func(w http.ResponseWriter, r *http.Request)) http.
 }
 
 func main() {
+	initSignalHandling()
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -269,4 +272,14 @@ func main() {
 	http.Handle("/", cached(c, serveInfo))
 
 	_ = http.ListenAndServe(":"+port, nil)
+}
+
+func initSignalHandling() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	go func() {
+		<-c
+		fmt.Println("caught signal, terminating")
+		os.Exit(0)
+	}()
 }
