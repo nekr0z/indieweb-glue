@@ -24,7 +24,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/signal"
 	"path"
+	"syscall"
 	"time"
 
 	"github.com/memcachier/mc/v3"
@@ -71,8 +73,8 @@ func getPhoto(c cache, link string) ([]byte, map[string][]string, error) {
 	if content != nil {
 		fmt.Printf("photo %s cache hit\n", link)
 		hd := map[string][]string{
-			"Cache-Control": []string{"public"},
-			"Expires":       []string{exp.Format(time.RFC1123)},
+			"Cache-Control": {"public"},
+			"Expires":       {exp.Format(time.RFC1123)},
 		}
 		return content, hd, nil
 	}
@@ -143,6 +145,10 @@ func serveHcard(c cache) func(http.ResponseWriter, *http.Request) {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
+		}
+
+		if string(js) == `{}` {
+			http.Error(w, "no representative hcard at URL", http.StatusNotFound)
 		}
 
 		setResponseHeaders(w, hd)
@@ -241,6 +247,7 @@ func cached(c cache, handler func(w http.ResponseWriter, r *http.Request)) http.
 }
 
 func main() {
+	initSignalHandling()
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -261,8 +268,18 @@ func main() {
 	}
 
 	http.HandleFunc("/api/hcard", serveHcard(c))
-	http.Handle("/api/photo", cached(c, servePhoto(c)))
+	http.HandleFunc("/api/photo", servePhoto(c))
 	http.Handle("/", cached(c, serveInfo))
 
 	_ = http.ListenAndServe(":"+port, nil)
+}
+
+func initSignalHandling() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGTERM)
+	go func() {
+		<-c
+		fmt.Println("caught signal, terminating")
+		os.Exit(0)
+	}()
 }

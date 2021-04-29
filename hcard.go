@@ -133,8 +133,8 @@ func getHcard(c cache, link string) (*hcard, map[string][]string) {
 			goto NeedCard
 		}
 		hd := map[string][]string{
-			"Cache-Control": []string{"public"},
-			"Expires":       []string{exp.Format(time.RFC1123)},
+			"Cache-Control": {"public"},
+			"Expires":       {exp.Format(time.RFC1123)},
 		}
 		return &h, hd
 	}
@@ -142,7 +142,9 @@ func getHcard(c cache, link string) (*hcard, map[string][]string) {
 NeedCard:
 	hc, hd, err := fetchHcard(link)
 	if err != nil {
-		return emptyHcard()
+		var hdr http.Header
+		hc, hdr = emptyHcard()
+		hd = &hdr
 	}
 
 	if ok, exp := canCache(*hd); ok {

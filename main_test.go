@@ -91,6 +91,29 @@ func TestServeHcard(t *testing.T) {
 	}
 }
 
+func TestServeEmptyHcard(t *testing.T) {
+	c := newMemoryCache()
+	s := httptest.NewServer(http.HandlerFunc(serveHcard(c)))
+	defer s.Close()
+
+	fs := http.FileServer(http.Dir("testdata"))
+	ms := httptest.NewServer(fs)
+	defer ms.Close()
+
+	u, _ := url.Parse(s.URL)
+	v := url.Values{}
+	v.Add("url", ms.URL+"/404.html")
+	u.RawQuery = v.Encode()
+
+	res, err := http.Get(u.String())
+	if err != nil {
+		t.Fatalf("error: %v", err)
+	}
+	if res.StatusCode != http.StatusNotFound {
+		t.Fatalf("want %v, got %v", http.StatusNotFound, res.StatusCode)
+	}
+}
+
 func TestServePhoto(t *testing.T) {
 	c := newMemoryCache()
 	s := httptest.NewServer(http.HandlerFunc(servePhoto(c)))
