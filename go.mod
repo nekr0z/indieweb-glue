@@ -7,5 +7,5 @@ go 1.14
 require (
 	github.com/PuerkitoBio/goquery v1.6.1
 	github.com/memcachier/mc/v3 v3.0.3
-	willnorris.com/go/microformats v1.1.0
+	willnorris.com/go/microformats v1.1.1
 )
