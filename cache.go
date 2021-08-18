@@ -136,5 +136,10 @@ func canCache(h http.Header) (bool, time.Time) {
 		return true, exp
 	}
 
+	if containsStr(c, "public") {
+		// CC is "public", but no expiration instructions are given
+		return true, time.Now().Add(time.Hour)
+	}
+
 	return false, time.Unix(0, 0)
 }
