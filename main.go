@@ -147,11 +147,11 @@ func serveHcard(c cache) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
+		setResponseHeaders(w, hd)
+
 		if string(js) == `{}` {
 			http.Error(w, "no representative hcard at URL", http.StatusNotFound)
 		}
-
-		setResponseHeaders(w, hd)
 
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write(js)
@@ -189,6 +189,8 @@ func servePhoto(c cache) func(http.ResponseWriter, *http.Request) {
 		}
 		hc, hchd := getHcard(c, req.Form["url"][0])
 
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		if hc.Photo == "" {
 			http.Error(w, "no photo", http.StatusNotFound)
 			return
@@ -206,8 +208,6 @@ func servePhoto(c cache) func(http.ResponseWriter, *http.Request) {
 		} else {
 			w.Header().Set("Cache-Control", "no-cache")
 		}
-
-		w.Header().Set("Access-Control-Allow-Origin", "*")
 
 		t := getModTime(hd)
 		http.ServeContent(w, req, "", t, bytes.NewReader(bb))
