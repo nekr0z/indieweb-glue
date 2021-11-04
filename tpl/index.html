@@ -9,7 +9,7 @@
 <p>The source code of this web service is open and available <a href="https://github.com/nekr0z/indieweb-glue">on GitHub</a>. The Heroku app is set up to automatically deploy from the <code>master</code> branch.</p>
 <h2>API</h2>
 <p><code>{{ .Addr -}}/api/hcard?url=URL</code> returns a JSON containing some information found in the <a href="http://microformats.org/wiki/representative-h-card-parsing">representative h-card</a> on the page referenced by <code>URL</code> (if indeed there is a representative h-card).</p>
-<p><code>{{ .Addr -}}/apt/photo?url=URL</code> returns the file referenced in the <code>u-photo</code> property of the abovementioned h-card.</p>
+<p><code>{{ .Addr -}}/api/photo?url=URL</code> returns the file referenced in the <code>u-photo</code> property of the abovementioned h-card.</p>
 <h2>Author</h2>
 <p>This web service is a hobby project by <a href="https://evgenykuznetsov.org/en/">Evgeny "nekr0z" Kuznetsov</a>.</p>
 </body>
