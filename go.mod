@@ -1,4 +1,4 @@
-module github.com/nekr0z/indieweb-glue
+module evgenykuznetsov.org/go/indieweb-glue
 
 // +heroku goVersion go1.14
 
