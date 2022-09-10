@@ -17,6 +17,7 @@ package main
 
 import (
 	"bytes"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -32,6 +33,11 @@ import (
 	"evgenykuznetsov.org/go/indieweb-glue/internal/hcard"
 	"github.com/memcachier/mc/v3"
 )
+
+//go:embed tpl/*
+var tpl embed.FS
+
+var websiteUrl string
 
 func calculateExpiration(h, hd http.Header) (bool, time.Time) {
 	ok, expH := canCache(h)
@@ -161,7 +167,7 @@ func serveHcard(c cache) func(http.ResponseWriter, *http.Request) {
 
 func serveInfo(w http.ResponseWriter, req *http.Request) {
 	fp := path.Join("tpl", "index.html")
-	tmpl, err := template.ParseFiles(fp)
+	tmpl, err := template.ParseFS(tpl, fp)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -170,7 +176,7 @@ func serveInfo(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Cache-Control", "public")
 	w.Header().Add("Cache-Control", "max-age=3600")
 
-	d := struct{ Addr string }{"https://indieweb-glue.herokuapp.com"}
+	d := struct{ Addr string }{websiteUrl}
 	if err := tmpl.Execute(w, d); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -252,6 +258,11 @@ func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
+	}
+
+	websiteUrl = os.Getenv("URL")
+	if websiteUrl == "" {
+		websiteUrl = "https://indieweb-glue.evgenykuznetsov.org/"
 	}
 
 	var c cache
