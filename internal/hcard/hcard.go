@@ -13,21 +13,20 @@
 // You should have received a copy of the GNU General Public License
 // along tihe this program. If not, see <https://www.gnu.org/licenses/>.
 
-package main
+package hcard
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	mf "willnorris.com/go/microformats"
 )
 
-type hcard struct {
+// HCard represents a h-card
+type HCard struct {
 	Source string `json:"source,omitempty"`
 	PName  string `json:"pname,omitempty"`
 	Photo  string `json:"uphoto,omitempty"`
@@ -87,7 +86,7 @@ func getHcards(doc *goquery.Document, u *url.URL) (hcards []*mf.Microformat) {
 	return
 }
 
-func fetchHcard(link string) (*hcard, *http.Header, error) {
+func Fetch(link string) (*HCard, *http.Header, error) {
 	u, err := url.Parse(link)
 	if err != nil {
 		return nil, nil, err
@@ -108,7 +107,7 @@ func fetchHcard(link string) (*hcard, *http.Header, error) {
 		return nil, &res.Header, fmt.Errorf("no representative h-card found")
 	}
 
-	var hc hcard
+	var hc HCard
 	hc.Source = res.Request.URL.String()
 
 	for _, t := range i.Type {
@@ -122,47 +121,8 @@ func fetchHcard(link string) (*hcard, *http.Header, error) {
 	return &hc, &res.Header, nil
 }
 
-func getHcard(c cache, link string) (*hcard, map[string][]string) {
-	key := "hcard=" + link
-	content, exp := c.get(key)
-	if content != nil {
-		fmt.Printf("hcard %s cache hit\n", link)
-		h := hcard{}
-		if err := json.Unmarshal(content, &h); err != nil {
-			fmt.Println("can't parse cached value")
-			goto NeedCard
-		}
-		hd := map[string][]string{
-			"Cache-Control": {"public"},
-			"Expires":       {exp.Format(time.RFC1123)},
-		}
-		return &h, hd
-	}
-
-NeedCard:
-	hc, hd, err := fetchHcard(link)
-	if err != nil {
-		var hdr http.Header
-		hc, hdr = emptyHcard()
-		hd = &hdr
-	}
-
-	if ok, exp := canCache(*hd); ok {
-		content, err := json.Marshal(hc)
-		if err != nil {
-			fmt.Println("can't marshal hcard")
-			return hc, *hd
-		}
-		c.set(key, content, exp)
-		fmt.Printf("%s cached until %s\n", key, exp.Format(time.RFC1123))
-	} else {
-		fmt.Printf("%s not cached\n", key)
-	}
-	return hc, *hd
-}
-
-func emptyHcard() (*hcard, map[string][]string) {
-	h := hcard{}
+func Empty() (*HCard, map[string][]string) {
+	h := HCard{}
 	hd := map[string][]string{}
 	return &h, hd
 }

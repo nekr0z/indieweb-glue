@@ -21,44 +21,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"strings"
 	"testing"
 )
-
-func TestFetchHcard(t *testing.T) {
-	tests := map[string]struct {
-		link string
-		want string
-	}{
-		"evgeny": {"", "%s/img/avatar.jpg"},
-		"tim":    {"/tim.html", ""},
-		"aaron":  {"/aaron.html", "%s/images/profile.jpg"},
-		"ruxton": {"/ignition.html", "https://secure.gravatar.com/avatar/8401de9afbdfada34ca21681a2394340?s=125&d=default&r=g"},
-	}
-
-	fs := http.FileServer(http.Dir("testdata"))
-	s := httptest.NewServer(fs)
-	defer s.Close()
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			hc, _, err := fetchHcard(fmt.Sprintf("%s%s", s.URL, tc.link))
-			if err != nil {
-				t.Fatalf("error: %v", err)
-			}
-
-			want := fmt.Sprintf(tc.want, s.URL)
-			if strings.Contains(want, "%!(EXTRA string") {
-				want = tc.want
-			}
-			got := hc.Photo
-
-			if got != want {
-				t.Fatalf("want %v, got %v", want, got)
-			}
-		})
-	}
-}
 
 func TestServeHcard(t *testing.T) {
 	c := newMemoryCache()
@@ -151,10 +115,10 @@ func TestServePhoto(t *testing.T) {
 }
 func TestCopyHeader(t *testing.T) {
 	hd := map[string][]string{
-		"Etag": []string{
+		"Etag": {
 			`"1553c-5a234afb92e92"`,
 		},
-		"Cache-Control": []string{
+		"Cache-Control": {
 			"max-age=2592000",
 			"public",
 		},

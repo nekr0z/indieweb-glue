@@ -29,6 +29,7 @@ import (
 	"syscall"
 	"time"
 
+	"evgenykuznetsov.org/go/indieweb-glue/internal/hcard"
 	"github.com/memcachier/mc/v3"
 )
 
@@ -282,4 +283,44 @@ func initSignalHandling() {
 		fmt.Println("caught signal, terminating")
 		os.Exit(0)
 	}()
+}
+
+// getHcard returns a H-Card from cache or caches it anew
+func getHcard(c cache, link string) (*hcard.HCard, map[string][]string) {
+	key := "hcard=" + link
+	content, exp := c.get(key)
+	if content != nil {
+		fmt.Printf("hcard %s cache hit\n", link)
+		h := hcard.HCard{}
+		if err := json.Unmarshal(content, &h); err != nil {
+			fmt.Println("can't parse cached value")
+			goto NeedCard
+		}
+		hd := map[string][]string{
+			"Cache-Control": {"public"},
+			"Expires":       {exp.Format(time.RFC1123)},
+		}
+		return &h, hd
+	}
+
+NeedCard:
+	hc, hd, err := hcard.Fetch(link)
+	if err != nil {
+		var hdr http.Header
+		hc, hdr = hcard.Empty()
+		hd = &hdr
+	}
+
+	if ok, exp := canCache(*hd); ok {
+		content, err := json.Marshal(hc)
+		if err != nil {
+			fmt.Println("can't marshal hcard")
+			return hc, *hd
+		}
+		c.set(key, content, exp)
+		fmt.Printf("%s cached until %s\n", key, exp.Format(time.RFC1123))
+	} else {
+		fmt.Printf("%s not cached\n", key)
+	}
+	return hc, *hd
 }
