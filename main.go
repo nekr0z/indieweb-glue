@@ -262,7 +262,7 @@ func main() {
 
 	websiteUrl = os.Getenv("URL")
 	if websiteUrl == "" {
-		websiteUrl = "https://indieweb-glue.evgenykuznetsov.org/"
+		websiteUrl = "https://indieweb-glue.evgenykuznetsov.org"
 	}
 
 	var c cache
