@@ -1,0 +1,37 @@
+name: TBD
+on: [push]
+jobs:
+  doit:
+    name: tbd
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - name: cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: |
+            ${{ runner.os }}-build-${{ hashFiles('**/go.mod') }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ hashFiles('**/go.mod') }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: vet
+        run: |
+          go vet ./...
+      - name: test
+        run: |
+          go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+      - name: build
+        run: |
+          go build -buildmode=pie -trimpath -ldflags "-s -w -buildid="
+      - name: artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: indieweb-glue
+          path: indieweb-glue
