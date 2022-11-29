@@ -17,41 +17,52 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"testing"
 )
 
-func TestServeHcard(t *testing.T) {
+func TestServe(t *testing.T) {
 	c := newMemoryCache()
-	s := httptest.NewServer(http.HandlerFunc(serveHcard(c)))
-	defer s.Close()
-
 	fs := http.FileServer(http.Dir("testdata"))
 	ms := httptest.NewServer(fs)
 	defer ms.Close()
 
-	u, _ := url.Parse(s.URL)
-	v := url.Values{}
-	v.Add("url", ms.URL)
-	u.RawQuery = v.Encode()
-
-	res, err := http.Get(u.String())
-	if err != nil {
-		t.Fatalf("error: %v", err)
-	}
-	defer res.Body.Close()
-
-	b, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return
+	tests := map[string]struct {
+		f    func(http.ResponseWriter, *http.Request)
+		want string
+	}{
+		"hcard": {serveHcard(c), fmt.Sprintf(`{"source":"%s","pname":"Евгений Кузнецов","uphoto":"%s/img/avatar.jpg"}`, ms.URL, ms.URL)},
 	}
 
-	want := fmt.Sprintf(`{"source":"%s","pname":"Евгений Кузнецов","uphoto":"%s/img/avatar.jpg"}`, ms.URL, ms.URL)
-	if string(b) != want {
-		t.Fatalf("want %s, got %s", want, b)
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			s := httptest.NewServer(http.HandlerFunc(serveHcard(c)))
+			defer s.Close()
+
+			u, _ := url.Parse(s.URL)
+			v := url.Values{}
+			v.Add("url", ms.URL)
+			u.RawQuery = v.Encode()
+
+			res, err := http.Get(u.String())
+			if err != nil {
+				t.Fatalf("error: %v", err)
+			}
+			defer res.Body.Close()
+
+			b, err := io.ReadAll(res.Body)
+			if err != nil {
+				return
+			}
+
+			if string(b) != tc.want {
+				t.Fatalf("want %s, got %s", tc.want, b)
+			}
+		})
 	}
 }
 
@@ -98,12 +109,12 @@ func TestServePhoto(t *testing.T) {
 	}
 	defer res.Body.Close()
 
-	got, err := ioutil.ReadAll(res.Body)
+	got, err := io.ReadAll(res.Body)
 	if err != nil {
 		return
 	}
 
-	want, _ := ioutil.ReadFile("testdata/img/avatar.jpg")
+	want, _ := os.ReadFile("testdata/img/avatar.jpg")
 	if len(got) != len(want) {
 		t.Fatalf("want length of %d bytes, got %d", len(want), len(got))
 	}
