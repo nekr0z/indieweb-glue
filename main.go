@@ -1,4 +1,4 @@
-// Copyright (C) 2020 Evgeny Kuznetsov (evgeny@kuznetsov.md)
+// Copyright (C) 2022 Evgeny Kuznetsov (evgeny@kuznetsov.md)
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"evgenykuznetsov.org/go/indieweb-glue/internal/hcard"
+	"evgenykuznetsov.org/go/indieweb-glue/internal/og"
 	"github.com/memcachier/mc/v3"
 )
 
@@ -308,6 +309,7 @@ func main() {
 	}
 
 	http.HandleFunc("/api/hcard", serveJSON(c, "hcard", getHcard))
+	http.HandleFunc("/api/opengraph", serveJSON(c, "og", getOG))
 	http.HandleFunc("/api/photo", servePhoto(c))
 	http.Handle("/", cached(c, serveInfo))
 
@@ -339,6 +341,20 @@ func getHcard(link string) ([]byte, map[string][]string) {
 	content, err := json.Marshal(hc)
 	if err != nil {
 		fmt.Println("can't marshal hcard")
+		return nil, *hd
+	}
+	return content, *hd
+}
+
+// getOG is a getter for OpenGraph
+func getOG(link string) ([]byte, map[string][]string) {
+	o, hd, err := og.Fetch(link)
+	if err != nil {
+		return []byte("{}"), nil
+	}
+	content, err := json.Marshal(o)
+	if err != nil {
+		fmt.Println("failed to marshal OG")
 		return nil, *hd
 	}
 	return content, *hd

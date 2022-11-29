@@ -36,6 +36,7 @@ func TestServe(t *testing.T) {
 		want string
 	}{
 		"hcard": {serveJSON(c, "hcard", getHcard), fmt.Sprintf(`{"source":"%s","pname":"Евгений Кузнецов","uphoto":"%s/img/avatar.jpg"}`, ms.URL, ms.URL)},
+		"og":    {serveJSON(c, "og", getOG), `{"title":"DIMV","description":"Личный сайт Евгения Кузнецова"}`},
 	}
 
 	for name, tc := range tests {
