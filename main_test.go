@@ -35,12 +35,12 @@ func TestServe(t *testing.T) {
 		f    func(http.ResponseWriter, *http.Request)
 		want string
 	}{
-		"hcard": {serveHcard(c), fmt.Sprintf(`{"source":"%s","pname":"Евгений Кузнецов","uphoto":"%s/img/avatar.jpg"}`, ms.URL, ms.URL)},
+		"hcard": {serveJSON(c, "hcard", getHcard), fmt.Sprintf(`{"source":"%s","pname":"Евгений Кузнецов","uphoto":"%s/img/avatar.jpg"}`, ms.URL, ms.URL)},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			s := httptest.NewServer(http.HandlerFunc(serveHcard(c)))
+			s := httptest.NewServer(http.HandlerFunc(tc.f))
 			defer s.Close()
 
 			u, _ := url.Parse(s.URL)
@@ -68,7 +68,7 @@ func TestServe(t *testing.T) {
 
 func TestServeEmptyHcard(t *testing.T) {
 	c := newMemoryCache()
-	s := httptest.NewServer(http.HandlerFunc(serveHcard(c)))
+	s := httptest.NewServer(http.HandlerFunc(serveJSON(c, "hcard", getHcard)))
 	defer s.Close()
 
 	fs := http.FileServer(http.Dir("testdata"))

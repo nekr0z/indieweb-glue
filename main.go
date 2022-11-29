@@ -134,7 +134,8 @@ func setResponseHeaders(w http.ResponseWriter, h map[string][]string) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 }
 
-func serveHcard(c cache) func(http.ResponseWriter, *http.Request) {
+// serveJSON serves JSON response returned from getter, caches it as needed
+func serveJSON(c cache, cachePrefix string, g getter) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, req *http.Request) {
 		err := req.ParseForm()
 		if err != nil {
@@ -146,23 +147,45 @@ func serveHcard(c cache) func(http.ResponseWriter, *http.Request) {
 			http.Error(w, "no URL specified", http.StatusBadRequest)
 			return
 		}
-		hc, hd := getHcard(c, req.Form["url"][0])
 
-		js, err := json.Marshal(hc)
-		if err != nil {
+		content, hd := getJSON(c, cachePrefix, req.Form["url"][0], g)
+
+		if content == nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		setResponseHeaders(w, hd)
 
-		if string(js) == `{}` {
+		if string(content) == `{}` {
 			http.Error(w, "no representative hcard at URL", http.StatusNotFound)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write(js)
+		_, _ = w.Write(content)
 	}
+}
+
+// getJSON gets JSON response returned from getter, caches it as needed
+func getJSON(c cache, cachePrefix, link string, g getter) (content []byte, hd map[string][]string) {
+	key := fmt.Sprintf("%s=%s", cachePrefix, link)
+	content, exp := c.get(key)
+	if content != nil {
+		fmt.Printf("%s %s cache hit\n", cachePrefix, link)
+		hd = map[string][]string{
+			"Cache-Control": {"public"},
+			"Expires":       {exp.Format(time.RFC1123)},
+		}
+	} else {
+		content, hd = g(link)
+		if ok, exp := canCache(hd); ok && content != nil {
+			c.set(key, content, exp)
+			fmt.Printf("%s cached until %s\n", key, exp.Format(time.RFC1123))
+		} else {
+			fmt.Printf("%s not cached\n", key)
+		}
+	}
+	return
 }
 
 func serveInfo(w http.ResponseWriter, req *http.Request) {
@@ -194,7 +217,12 @@ func servePhoto(c cache) func(http.ResponseWriter, *http.Request) {
 			http.Error(w, "no URL specified", http.StatusBadRequest)
 			return
 		}
-		hc, hchd := getHcard(c, req.Form["url"][0])
+		js, hchd := getJSON(c, "hcard", req.Form["url"][0], getHcard)
+		hc := hcard.HCard{}
+		if err := json.Unmarshal(js, &hc); err != nil {
+			http.Error(w, "no hcard", http.StatusNotFound)
+			return
+		}
 
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 
@@ -279,7 +307,7 @@ func main() {
 		fmt.Println("using memory cache")
 	}
 
-	http.HandleFunc("/api/hcard", serveHcard(c))
+	http.HandleFunc("/api/hcard", serveJSON(c, "hcard", getHcard))
 	http.HandleFunc("/api/photo", servePhoto(c))
 	http.Handle("/", cached(c, serveInfo))
 
@@ -296,42 +324,22 @@ func initSignalHandling() {
 	}()
 }
 
-// getHcard returns a H-Card from cache or caches it anew
-func getHcard(c cache, link string) (*hcard.HCard, map[string][]string) {
-	key := "hcard=" + link
-	content, exp := c.get(key)
-	if content != nil {
-		fmt.Printf("hcard %s cache hit\n", link)
-		h := hcard.HCard{}
-		if err := json.Unmarshal(content, &h); err != nil {
-			fmt.Println("can't parse cached value")
-			goto NeedCard
-		}
-		hd := map[string][]string{
-			"Cache-Control": {"public"},
-			"Expires":       {exp.Format(time.RFC1123)},
-		}
-		return &h, hd
-	}
+// getter takes an uri and returns a JSON-packed response for that uri
+// (nil if marshaling failed), together with HTTP headers that may be of interest
+type getter func(uri string) (js []byte, headers map[string][]string)
 
-NeedCard:
+// getHcard is a getter for H-Cards
+func getHcard(link string) ([]byte, map[string][]string) {
 	hc, hd, err := hcard.Fetch(link)
 	if err != nil {
 		var hdr http.Header
 		hc, hdr = hcard.Empty()
 		hd = &hdr
 	}
-
-	if ok, exp := canCache(*hd); ok {
-		content, err := json.Marshal(hc)
-		if err != nil {
-			fmt.Println("can't marshal hcard")
-			return hc, *hd
-		}
-		c.set(key, content, exp)
-		fmt.Printf("%s cached until %s\n", key, exp.Format(time.RFC1123))
-	} else {
-		fmt.Printf("%s not cached\n", key)
+	content, err := json.Marshal(hc)
+	if err != nil {
+		fmt.Println("can't marshal hcard")
+		return nil, *hd
 	}
-	return hc, *hd
+	return content, *hd
 }
