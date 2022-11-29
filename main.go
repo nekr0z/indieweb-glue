@@ -21,7 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -95,7 +95,7 @@ func getPhoto(c cache, link string) ([]byte, map[string][]string, error) {
 	}
 	defer res.Body.Close()
 
-	bb, err = ioutil.ReadAll(res.Body)
+	bb, err = io.ReadAll(res.Body)
 	if err != nil {
 		return bb, hd, err
 	}
