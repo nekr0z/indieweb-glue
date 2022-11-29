@@ -159,7 +159,7 @@ func serveJSON(c cache, cachePrefix string, g getter) func(http.ResponseWriter, 
 		setResponseHeaders(w, hd)
 
 		if string(content) == `{}` {
-			http.Error(w, "no representative hcard at URL", http.StatusNotFound)
+			http.Error(w, "no appropriate info at URL", http.StatusNotFound)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
