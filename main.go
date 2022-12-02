@@ -32,6 +32,7 @@ import (
 
 	"evgenykuznetsov.org/go/indieweb-glue/internal/hcard"
 	"evgenykuznetsov.org/go/indieweb-glue/internal/og"
+	"evgenykuznetsov.org/go/indieweb-glue/internal/pageinfo"
 	"github.com/memcachier/mc/v3"
 )
 
@@ -310,6 +311,7 @@ func main() {
 
 	http.HandleFunc("/api/hcard", serveJSON(c, "hcard", getHcard))
 	http.HandleFunc("/api/opengraph", serveJSON(c, "og", getOG))
+	http.HandleFunc("/api/pageinfo", serveJSON(c, "pageinfo", getPageInfo))
 	http.HandleFunc("/api/photo", servePhoto(c))
 	http.Handle("/", cached(c, serveInfo))
 
@@ -355,6 +357,20 @@ func getOG(link string) ([]byte, map[string][]string) {
 	content, err := json.Marshal(o)
 	if err != nil {
 		fmt.Println("failed to marshal OG")
+		return nil, *hd
+	}
+	return content, *hd
+}
+
+// getPageIngo is a getter for page information
+func getPageInfo(link string) ([]byte, map[string][]string) {
+	pi, hd, err := pageinfo.Fetch(link)
+	if err != nil {
+		return []byte("{}"), nil
+	}
+	content, err := json.Marshal(pi)
+	if err != nil {
+		fmt.Println("failed to marshal page information")
 		return nil, *hd
 	}
 	return content, *hd
