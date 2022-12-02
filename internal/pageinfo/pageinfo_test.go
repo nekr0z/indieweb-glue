@@ -54,6 +54,24 @@ func TestFetchDescription(t *testing.T) {
 	}
 }
 
+func TestDescription(t *testing.T) {
+	tests := map[string]struct {
+		filename string
+		want     string
+	}{
+		"jamesg.blog": {"/capjamesg.html", ""},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			pi := piFromFile(t, tc.filename)
+			if pi.Description != tc.want {
+				t.Fatalf("want \"%v\", got \"%v\"", tc.want, pi.Description)
+			}
+		})
+	}
+}
+
 func TestTitle(t *testing.T) {
 	tests := map[string]struct {
 		filename string
@@ -64,20 +82,24 @@ func TestTitle(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			f, err := os.Open(filepath.Join("testdata", tc.filename))
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer f.Close()
-			d, err := goquery.NewDocumentFromReader(f)
-			if err != nil {
-				t.Fatal(err)
-			}
-			pi := FromDocument(d)
-
+			pi := piFromFile(t, tc.filename)
 			if pi.Title != tc.want {
 				t.Fatalf("want \"%v\", got \"%v\"", tc.want, pi.Title)
 			}
 		})
 	}
+}
+
+func piFromFile(t *testing.T, filename string) Info {
+	t.Helper()
+	f, err := os.Open(filepath.Join("testdata", filename))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	d, err := goquery.NewDocumentFromReader(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return FromDocument(d)
 }

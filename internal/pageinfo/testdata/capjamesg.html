@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    
+      <title>Home | James' Coffee Blog</title>
+    
+
+    <link rel="stylesheet" href="/assets/styles/styles.css" />
+
+    <link href="mailto:jamesg@jamesg.blog" rel="me">
+
+    <!-- This link specifies a manifest that states a search engine you can use on my site. -->
+    <link rel="search" type="application/opensearchdescription+xml" title="IndieWeb Search" href="/assets/opensearch.xml">
+
+    <!-- This link contains information that mobile devices use to render progressive web apps (PWAs).
+        PWAs make websites feel more native to some mobile devices when a web page is added to a device home screen
+        or saved as a device app. -->
+    <link rel="manifest" href="/assets/manifest.json">
+
+    
+      <meta name="description" content="Hello! I'm James (also capjamesg). My pronouns are he/him/his. I live in Scotland, UK. This is my blog." />
+    
+    
+    
+      <meta property="og:image" content="/assets/cup_beans.webp" />
+      <meta name="twitter:image:src" content="/assets/cup_beans.webp">
+    
+
+    <link rel="icon" href="/favicon.ico" />
+
+    <link rel="apple-touch-icon-precomposed" href="/favicon.ico" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <meta rel="canonical" href="https://jamesg.blog/" />
+
+    <script type="text/javascript" src="/assets/js/indieconfig.js"></script>
+    <script type="text/javascript" src="/assets/js/webaction.js"></script>
+
+    <link rel="self" href="https://jamesg.blog/" />
+
+    <!-- This script lets someone link directly to a particular piece of text in a page.
+        See https://jamesg.blog/2022/10/11/fragmention-links/ for more information. -->
+    <script src="/assets/js/annotate.js"></script>
+
+    
+
+    
+
+    <!-- The styles below show up when a user has dark mode enabled on my site.
+        The logic for when these styles are applied is in a script further down on the page. -->
+    <style id="darkmode" media="none">
+      html, .citation_box, details, summary, .social li {
+        background-color: #1F2937;
+      }
+      .highlight {
+        color: black;
+      }
+      .highlight a {
+        color: blue;
+        border-bottom: 2px dotted blue;
+      }
+      .highlight a:hover {
+        color: violet;
+      }
+      a {
+        color: lightgreen;
+        border-bottom: 2px dotted lightgreen;
+      }
+      a:hover {
+        color: #ccc;
+      }
+      h1, h2, h3 {
+        color: orange;
+      }
+      .social_interaction, .webmention {
+        background: none;
+      }
+      p, li, dt, dd, .indieweb_footer, input, label {
+        color: white;
+      }
+      input, textarea, code, pre, main {
+        background-color: #0c2548;
+        color: #ccc;
+      }
+    </style>
+    <link href="/assets/styles/prism.css" rel="stylesheet" />
+  </head>
+  <body>
+    <main>
+        <!-- Skip link so that screen reader users can skip narration of the navigation bar. -->
+      <a href="#main" class="accessibility_label">Skip to main content</a>
+    	<nav id="top_navigation">
+	<p><a href="https://jamesg.blog" rel="home">James' Coffee Blog <span aria-hidden="true">❄️</span></a></p>
+	<ul>
+		<li><a href="/indieweb/">IndieWeb</a></li>
+		<li><a href="/coffee/">Coffee</a></li>
+		<li><a href="/projects/">Projects</a></li>
+		<li><a href="/interviews/">Interviews</a></li>
+		<li><a href="https://jamesg.coffee">Notes</a></li>
+		<li>
+			<form action="/search/" method="GET">
+				<input type="search" placeholder="Search" aria-label="Enter a search query" name="q" style="text-align: left;" />
+				<input type="submit" value="🔍" aria-label="Search" style="padding: 0; background-color: initial; margin-top: 0;" />
+			</form>
+		</li>
+	</ul>
+</nav>
+      <!-- This code applies dark mode to a page if:
+            1. A visitor has dark mode enabled on their system and hasn't disabled dark mode using the button
+                in the site site navigation bar.
+            2. A visitor has enabled dark mode using the button in the site navigation bar.
+            Preferences for dark mode are saved across page views.
+            See https://github.com/capjamesg/darkmode.js for more info. -->
+      <script>
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.getElementById('darkmode').media = "all";
+        }
+
+        if (localStorage.getItem('darkmode') == "true") {
+          document.getElementById('darkmode').media = "all";
+        } else if (localStorage.getItem('darkmode') == "false") {
+          document.getElementById('darkmode').media = "none";
+        }
+
+        var navigation = document.getElementById("top_navigation");
+        var ul = navigation.getElementsByTagName("ul")[0];
+        
+        var li = document.createElement("li");
+        var dark_style = document.getElementById("darkmode");
+  
+        if (dark_style.media === "all") {
+          li.innerHTML = "<a onclick='toggleTheme();'>Light Mode</a>";
+        } else {
+          li.innerHTML = "<a onclick='toggleTheme();'>Dark Mode</a>";
+        }
+
+        var last_li = ul.getElementsByTagName("li")[ul.getElementsByTagName("li").length - 1];
+
+        ul.insertBefore(li, last_li);
+  
+        function toggleTheme() {
+          if (dark_style.media === "all") {
+            dark_style.media = "none";
+            li.innerHTML = "<a onclick='toggleTheme();'>Dark Mode</a>";
+            localStorage.setItem('darkmode', 'false');
+          } else {
+            dark_style.media = "all";
+            li.innerHTML = "<a onclick='toggleTheme();'>Light Mode</a>";
+            localStorage.setItem('darkmode', 'true');
+          }
+        }
+      </script>
+      <script>var hovercards = {}</script><div id="main">
+    	 <h1>James' Coffee Blog <span aria-hidden="true">❄️</span></h1>
+
+<div class="h-feed hfeed">
+	<section class="flex_item h-card p-author">
+		<div class="flex_left_home">
+			<h2>About Me <span role="img" aria-label="hand waving">👋</span></h2>
+			
+			<p>Hello! I'm <a href="https://jamesg.blog/" class="p-name u-url p-given-name">James</a> (also <span class="p-nickname">capjamesg</span>). My pronouns are <a href="https://pronoun.is/he/him/"><span class="u-pronoun">he</span>/<span class="u-pronoun">him</span>/<span class="u-pronoun">his</span></a>. I live in <span class="p-region">Scotland</span>, <span class="p-country-name">UK</span>. This is my blog.</p>
+
+			<p class="p-note">I like to build for the web. I also enjoy experimenting with new programming languages.</p>
+
+			<p>On this blog, I write about the open web and coffee. Every two weeks, I co-host the <a href="https://hwclondon.co.uk">Europe Homebrew Website Club</a>.</p>
+
+			<p>My email address is <a href="mailto:readers@jamesg.blog" class="u-email">readers@jamesg.blog</a>.</p>
+
+			<p>I also contribute to the <a href="https://indieweb.org/User:Jamesg.blog" rel="me">IndieWeb</a> wiki. I have open sourced some code on <a href="https://github.com/capjamesg" rel="me">GitHub</a> and <a href="https://sr.ht/~capjamesg/" rel="me">Sourcehut</a>.</p>
+
+			
+            <p><a href="/category/post/">452 Posts</a> <embed class="light_mode" src="/assets/sparkline.svg?0,0,2,3,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1,1,1,4,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1"
+            class="sparkline" width=100 height=15 /></p>
+            <p><a href="https://indieweb.org/User:Jamesg.blog">IndieWeb Wiki Contributions</a> <embed class="light_mode" src="https://sparkline.jamesg.blog/?username=Jamesg.blog&api_url=https://indieweb.org/wiki/api.php&only_image=true&days=30"
+            class="sparkline" width=100 height=15 /></p>
+		</div>
+		<div class="flex_right_home">
+			<img src="/assets/coffeeshop.jpg" height="200" width="200" class="u-photo main-photo u-logo" alt="James sitting in a coffee shop, happily staring at a cup of coffee." />
+		</div>
+	</section>
+
+	<section>
+		<h2 class="p-name">Blog Posts 📝</h2>
+		<p class="p-summary">Below are the most recent articles I have written.</p>
+		<ul class="blog">
+		
+			<li style="display: flex; flex-direction: row; flex-wrap: wrap; margin-bottom: 15px; border-color: lightgreen;" class="social_interaction h-entry">
+    <div class="flex_left_home">
+        <p>📌 Pinned</p>
+        <h3 class="p-name"><a href="/2022/10/04/w3c-sustyweb-first-meeting/" class="u-url">Joining my first W3C Sustainability CG meeting</a></h3>
+        <p>Published on <time class="dt-published" datetime="2022-10-04 00:00:00">October 04, 2022</time> under the <a href="/category/web/" class="p-category">Web</a> category.</p>
+        <div class="p-summary e-content" style="max-width: initial;"><p>Organisers at the W3C are working on various initiatives related to sustainability. Over the last few months, two new community groups (CGs) were started to focus on sustainability and how it pertains to the web and the W3C as an organisation. [^1] After doing some reading about the revived <a href="https://www.w3.org/community/sustyweb/">Sustainable Web (sustyweb) group</a>, I decided to join and see how I could help.</p></div>
+        <p><a href="/2022/10/04/w3c-sustyweb-first-meeting/" aria-label="Read full Joining my first W3C Sustainability CG meeting article">Read more</a></p>
+    </div>
+    <div class="flex_right_home">
+        <img src="/assets/latte_all.webp" alt="A latte in a white cup sitting on a brown table" class="u-photo u-featured">
+    </div>
+</li>
+		
+			<li style="display: flex; flex-direction: row; flex-wrap: wrap; margin-bottom: 15px; " class="social_interaction h-entry">
+    <div class="flex_left_home">
+        
+        <h3 class="p-name"><a href="/2022/12/02/webmention-talk/" class="u-url">Decentralized Website Communication with Webmention (Talk Announcement)</a></h3>
+        <p>Published on <time class="dt-published" datetime="2022-12-02 00:00:00">December 02, 2022</time> under the <a href="/category/indieweb/" class="p-category">IndieWeb</a> category.</p>
+        <div class="p-summary e-content" style="max-width: initial;"><p>What is Webmention? What can I build on top of the Webmention protocol? How do I start sending and receiving Webmentions? These are three questions I'm going to answer in my upcoming talk on Codementor Events: <em><a href="https://www.codementor.io/events/decentralized-website-communication-with-webmention-fwusximcte">Decentralized Website Communication with Webmention</a>.</em></p></div>
+        <p><a href="/2022/12/02/webmention-talk/" aria-label="Read full Decentralized Website Communication with Webmention (Talk Announcement) article">Read more</a></p>
+    </div>
+    <div class="flex_right_home">
+        <img src="/assets/talk.png" style="object-fit: cover; max-height: 300px; margin-left: 10px; width: 100%;" alt="The banner for my Webmention talk on Codementor" class="u-photo u-featured">
+    </div>
+</li>
+		
+			<li style="display: flex; flex-direction: row; flex-wrap: wrap; margin-bottom: 15px; " class="social_interaction h-entry">
+    <div class="flex_left_home">
+        
+        <h3 class="p-name"><a href="/2022/12/01/indieweb-chatgpt/" class="u-url">The IndieWeb (according to ChatGPT)</a></h3>
+        <p>Published on <time class="dt-published" datetime="2022-12-01 00:00:00">December 01, 2022</time> under the <a href="/category/indieweb/" class="p-category">IndieWeb</a> category.</p>
+        <div class="p-summary e-content" style="max-width: initial;"><p>Earlier today, I was playing around with OpenAI's <a href="https://openai.com/blog/chatgpt/">new ChatGPT model</a>. I have thus far asked ChatGPT what coffee is, how to boil a kettle, what microformats is, and what the IndieWeb is. I thought I'd share the result I got for the prompt "What is the IndieWeb?":</p></div>
+        <p><a href="/2022/12/01/indieweb-chatgpt/" aria-label="Read full The IndieWeb (according to ChatGPT) article">Read more</a></p>
+    </div>
+    <div class="flex_right_home">
+        <img src="/assets/latte_all.webp" style="object-fit: cover; max-height: 300px; margin-left: 10px; width: 100%;" alt="A cup of coffee on a brown table" class="u-photo u-featured">
+    </div>
+</li>
+		
+			<li style="display: flex; flex-direction: row; flex-wrap: wrap; margin-bottom: 15px; " class="social_interaction h-entry">
+    <div class="flex_left_home">
+        
+        <h3 class="p-name"><a href="/2022/11/15/new-orleans/" class="u-url">New Orleans 2022</a></h3>
+        <p>Published on <time class="dt-published" datetime="2022-11-15 00:00:00">November 15, 2022</time> under the <a href="/category/photos/" class="p-category">Photos</a> category.</p>
+        <div class="p-summary e-content" style="max-width: initial;"><p>Last week, I visited the US for the first time. I travelled to New Orleans. After two connecting flights from Scotland and almost a full day of travel, I arrived greeted by warmth, despite the late hour. I couldn't believe how warm the weather was. I took a few photos on the trip that I want to share here on my blog.</p></div>
+        <p><a href="/2022/11/15/new-orleans/" aria-label="Read full New Orleans 2022 article">Read more</a></p>
+    </div>
+    <div class="flex_right_home">
+        <img src="/assets/nola1.jpeg" style="object-fit: cover; max-height: 300px; margin-left: 10px; width: 100%;" alt="The New Orleans skyline" class="u-photo u-featured">
+    </div>
+</li>
+		
+			<li style="display: flex; flex-direction: row; flex-wrap: wrap; margin-bottom: 15px; " class="social_interaction h-entry">
+    <div class="flex_left_home">
+        
+        <h3 class="p-name"><a href="/2022/10/21/send-webmention-in-python/" class="u-url">Send a Webmention in 10 (or fewer) lines of Python code</a></h3>
+        <p>Published on <time class="dt-published" datetime="2022-10-21 00:00:00">October 21, 2022</time> under the <a href="/category/indieweb/" class="p-category">IndieWeb</a> category.</p>
+        <div class="p-summary e-content" style="max-width: initial;"><p><a href="https://indieweb.org/Webmention">Webmentions</a> enable distributed social interactions over the web. Using webmentions, you can send replies, likes, and other interactions that were published on your site to respond to another web page. For example, I send Webmentions for all of the bookmarks I create on my website. If a site can receive Webmentions, they will be notified that I bookmarked their post for later.</p></div>
+        <p><a href="/2022/10/21/send-webmention-in-python/" aria-label="Read full Send a Webmention in 10 (or fewer) lines of Python code article">Read more</a></p>
+    </div>
+    <div class="flex_right_home">
+        <img src="/assets/webmention-logo.png" style="object-fit: cover; max-height: 300px; margin-left: 10px; width: 100%;" alt="The Webmention protocol logo" class="u-photo u-featured">
+    </div>
+</li>
+		
+		</ul>
+		<p><a href="/category/post/">View all blog posts</a>
+	</section>
+</div>
+      </div>
+      <p class="accessibility_label"><a href="#main">Go Back to the Top</a></p>
+      <footer>
+	<ul>
+		<li><a href="/blogs-and-books/">Blogs and Books</a></li>
+		<li><a href="/search/?time_machine=true">Time Machine</a></li>
+		<li><a href="/coffee/maps/">Coffee Maps</a></li>
+		<li><a href="/2021/05/10/edinburgh-cafe-quiz">Edinburgh Café Quiz</a></li>
+		<li><a href="/sitemap/">Sitemap</a></li>
+		<li><a href="/archive/">Web Log Archive</a></li>
+		<li><a href="/privacy/" rel="privacy-policy">Privacy</a></li>
+		<li><a href="/feeds/posts.xml">RSS</a></li>
+	</ul>
+	<div class="indieweb_footer">
+		<a href="https://indieweb.org/Webmention" class="button-link"><img src="/assets/webmention_button.webp" alt="Webmention logo indicating that you can send a webmention to this blog" width="80" height="15" /></a>
+		<a href="https://indieweb.org" class="button-link"><img src="/assets/indieweb_button.webp" alt="IndieWeb logo" width="80" height="15" /></a><br />
+		<a href="https://microformats.org" class="button-link"><img src="/assets/microformats_button.webp" alt="Microformats logo" width="80" height="15" /></a><br />
+		<a href="https://xn--sr8hvo.ws/%F0%9F%98%85%F0%9F%8F%BD%E3%8A%97%EF%B8%8F/previous">←</a>
+		  IndieWeb Webring  
+		<a href="https://xn--sr8hvo.ws/%F0%9F%98%85%F0%9F%8F%BD%E3%8A%97%EF%B8%8F/next">→</a>
+		<img src="/assets/lights.png" alt="" />
+	</div>
+</footer>
+
+<script src="/assets/webmention.min.js" async></script>
+      
+    </main>
+    
+  </body>
+</html>

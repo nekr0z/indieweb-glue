@@ -79,7 +79,7 @@ func FromDocument(d *goquery.Document) Info {
 	}
 
 	getDescription := []func(*goquery.Document) string{
-		func(d *goquery.Document) string { return d.Find(".p-summary").Text() },
+		mfDesc,
 		func(*goquery.Document) string { return o.Description },
 		wikiFirstPara,
 	}
@@ -111,7 +111,19 @@ func wikiFirstPara(d *goquery.Document) string {
 	return d.Find(".mw-parser-output").Find("p").First().Text()
 }
 
-// mfTitle returns the title of a page that has microformats on it
+// mfDesc returns the description of a page that has microformats on it.
+func mfDesc(d *goquery.Document) string {
+	data := microformats.ParseNode(d.Get(0), nil)
+	for _, item := range data.Items {
+		if item.ID == "content" {
+			n := item.Properties["summary"]
+			return getString(n)
+		}
+	}
+	return ""
+}
+
+// mfTitle returns the title of a page that has microformats on it.
 func mfTitle(d *goquery.Document) string {
 	data := microformats.ParseNode(d.Get(0), nil)
 	for _, item := range data.Items {
