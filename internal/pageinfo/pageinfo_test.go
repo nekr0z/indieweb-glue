@@ -19,8 +19,12 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 func TestFetchDescription(t *testing.T) {
@@ -28,7 +32,8 @@ func TestFetchDescription(t *testing.T) {
 		link string
 		want string
 	}{
-		"wikipedia": {"/sedgewick.html", "Роберт Седжвик (род."},
+		"wikipedia":     {"/sedgewick.html", "Роберт Седжвик (род."},
+		"indieweb wiki": {"/person_mention.html", "person mention is a homepage"},
 	}
 
 	fs := http.FileServer(http.Dir("testdata"))
@@ -44,6 +49,34 @@ func TestFetchDescription(t *testing.T) {
 
 			if !strings.HasPrefix(pi.Description, tc.want) {
 				t.Fatalf("want %v..., got %v", tc.want, pi.Description)
+			}
+		})
+	}
+}
+
+func TestTitle(t *testing.T) {
+	tests := map[string]struct {
+		filename string
+		want     string
+	}{
+		"indieweb wiki": {"person_mention.html", "person mention"},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			f, err := os.Open(filepath.Join("testdata", tc.filename))
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer f.Close()
+			d, err := goquery.NewDocumentFromReader(f)
+			if err != nil {
+				t.Fatal(err)
+			}
+			pi := FromDocument(d)
+
+			if pi.Title != tc.want {
+				t.Fatalf("want \"%v\", got \"%v\"", tc.want, pi.Title)
 			}
 		})
 	}

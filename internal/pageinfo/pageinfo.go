@@ -23,6 +23,7 @@ import (
 
 	"evgenykuznetsov.org/go/indieweb-glue/internal/og"
 	"github.com/PuerkitoBio/goquery"
+	"willnorris.com/go/microformats"
 )
 
 // Info represents information about page
@@ -54,26 +55,85 @@ func Fetch(uri string) (*Info, *http.Header, error) {
 		return nil, nil, err
 	}
 
-	o, err := og.FromDocument(d)
-	if err != nil {
-		return nil, nil, err
+	pi := FromDocument(d)
+
+	return &pi, &res.Header, nil
+}
+
+// FromDocument returns Info properties from a document
+func FromDocument(d *goquery.Document) Info {
+	o, _ := og.FromDocument(d)
+
+	getTitle := []func(*goquery.Document) string{
+		mfTitle,
+		func(*goquery.Document) string { return o.Title },
+		func(d *goquery.Document) string { return d.Find("title").Text() },
 	}
 
-	desc := o.Description
-
-	if len(desc) == 0 {
-		if gen, ok := d.Find("meta[name=\"generator\"]").Attr("content"); ok {
-			if strings.HasPrefix(gen, "MediaWiki") {
-				desc = d.Find(".mw-parser-output").Find("p").First().Text()
-			}
+	var title string
+	for _, get := range getTitle {
+		title = get(d)
+		if len(title) != 0 {
+			break
 		}
 	}
 
-	pi := Info{
-		Title:       o.Title,
+	getDescription := []func(*goquery.Document) string{
+		func(d *goquery.Document) string { return d.Find(".p-summary").Text() },
+		func(*goquery.Document) string { return o.Description },
+		wikiFirstPara,
+	}
+
+	var desc string
+	for _, get := range getDescription {
+		desc = get(d)
+		if len(desc) != 0 {
+			break
+		}
+	}
+
+	return Info{
+		Title:       title,
 		Description: desc,
 		Image:       o.Image,
 	}
+}
 
-	return &pi, &res.Header, nil
+// wikiFirstPara returns the first paragraph of text if d is a wiki page
+func wikiFirstPara(d *goquery.Document) string {
+	gen, ok := d.Find("meta[name=\"generator\"]").Attr("content")
+	if !ok {
+		return ""
+	}
+	if !strings.HasPrefix(gen, "MediaWiki") {
+		return ""
+	}
+	return d.Find(".mw-parser-output").Find("p").First().Text()
+}
+
+// mfTitle returns the title of a page that has microformats on it
+func mfTitle(d *goquery.Document) string {
+	data := microformats.ParseNode(d.Get(0), nil)
+	for _, item := range data.Items {
+		if item.ID == "content" {
+			n := item.Properties["name"]
+			return getString(n)
+		}
+	}
+	return ""
+}
+
+// getString returns a string value nested in interface{}
+func getString(n interface{}) string {
+	switch v := n.(type) {
+	case string:
+		return v
+	case []interface{}:
+		if len(v) < 1 {
+			return ""
+		}
+		return getString(v[0])
+	default:
+		return ""
+	}
 }

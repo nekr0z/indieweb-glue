@@ -61,6 +61,7 @@ func Fetch(uri string) (*OpenGraph, *http.Header, error) {
 	return &og, &res.Header, nil
 }
 
+// FromDocument returns OpenGraph properties from a document
 func FromDocument(d *goquery.Document) (OpenGraph, error) {
 	title, ok := d.Find("meta[property=\"og:title\"]").Attr("content")
 	if !ok {
