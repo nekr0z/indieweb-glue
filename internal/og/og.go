@@ -53,9 +53,18 @@ func Fetch(uri string) (*OpenGraph, *http.Header, error) {
 		return nil, nil, err
 	}
 
+	og, err := FromDocument(d)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &og, &res.Header, nil
+}
+
+func FromDocument(d *goquery.Document) (OpenGraph, error) {
 	title, ok := d.Find("meta[property=\"og:title\"]").Attr("content")
 	if !ok {
-		return nil, nil, fmt.Errorf("no opengraph title property found")
+		return OpenGraph{}, fmt.Errorf("no opengraph title property found")
 	}
 	og := OpenGraph{Title: title}
 
@@ -66,6 +75,5 @@ func Fetch(uri string) (*OpenGraph, *http.Header, error) {
 	if desc, ok := d.Find("meta[property=\"og:description\"]").Attr("content"); ok {
 		og.Description = desc
 	}
-
-	return &og, &res.Header, nil
+	return og, nil
 }
