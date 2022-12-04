@@ -71,6 +71,38 @@ func TestDescription(t *testing.T) {
 	}
 }
 
+func TestImage(t *testing.T) {
+	tests := map[string]struct {
+		link string
+		want string
+	}{
+		"wikipedia":  {"/sedgewick.html", "https://upload.wikimedia.org/wikipedia/commons/d/d1/Robertsedgewick.jpg"},
+		"u-featured": {"/james.html", "%s/assets/hovercard.png"},
+	}
+
+	fs := http.FileServer(http.Dir("testdata"))
+	s := httptest.NewServer(fs)
+	defer s.Close()
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			pi, _, err := Fetch(fmt.Sprintf("%s%s", s.URL, tc.link))
+			if err != nil {
+				t.Fatalf("error: %v", err)
+			}
+
+			want := fmt.Sprintf(tc.want, s.URL)
+			if strings.Contains(want, "%!(EXTRA string") {
+				want = tc.want
+			}
+
+			if pi.Image != want {
+				t.Fatalf("want %v, got %v", want, pi.Image)
+			}
+		})
+	}
+}
+
 func TestTitle(t *testing.T) {
 	tests := map[string]struct {
 		filename string

@@ -56,6 +56,9 @@ func Fetch(uri string) (*Info, *http.Header, error) {
 	}
 
 	pi := FromDocument(d)
+	if pi.Image == "" {
+		pi.Image = mfImage(d, u)
+	}
 
 	return &pi, &res.Header, nil
 }
@@ -119,6 +122,19 @@ func metaDesc(d *goquery.Document) string {
 		return ""
 	}
 	return desc
+}
+
+// mfImage returns the image representing a page that has microformats on it.
+func mfImage(d *goquery.Document, u *url.URL) string {
+	i, ok := d.Find("img.u-featured").Attr("src")
+	if !ok {
+		return ""
+	}
+	uri, err := u.Parse(i)
+	if err != nil {
+		return ""
+	}
+	return uri.String()
 }
 
 // mfDesc returns the description of a page that has microformats on it.
