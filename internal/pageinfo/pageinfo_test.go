@@ -34,6 +34,7 @@ func TestFetchDescription(t *testing.T) {
 	}{
 		"wikipedia":     {"/sedgewick.html", "Роберт Седжвик (род."},
 		"indieweb wiki": {"/person_mention.html", "person mention is a homepage"},
+		"jamesg.blog":   {"/capjamesg.html", "Hello! I'm James"},
 	}
 
 	fs := http.FileServer(http.Dir("testdata"))
@@ -58,9 +59,7 @@ func TestDescription(t *testing.T) {
 	tests := map[string]struct {
 		filename string
 		want     string
-	}{
-		"jamesg.blog": {"/capjamesg.html", ""},
-	}
+	}{}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

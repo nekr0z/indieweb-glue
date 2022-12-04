@@ -82,6 +82,7 @@ func FromDocument(d *goquery.Document) Info {
 		mfDesc,
 		func(*goquery.Document) string { return o.Description },
 		wikiFirstPara,
+		metaDesc,
 	}
 
 	var desc string
@@ -109,6 +110,15 @@ func wikiFirstPara(d *goquery.Document) string {
 		return ""
 	}
 	return d.Find(".mw-parser-output").Find("p").First().Text()
+}
+
+// metaDesc returns the "description" meta-tag content
+func metaDesc(d *goquery.Document) string {
+	desc, ok := d.Find("meta[name=\"description\"]").Attr("content")
+	if !ok {
+		return ""
+	}
+	return desc
 }
 
 // mfDesc returns the description of a page that has microformats on it.
