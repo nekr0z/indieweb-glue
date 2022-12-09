@@ -37,7 +37,7 @@ jobs:
           path: indieweb-glue
           retention-days: 1
       - name: trigger deploy
-        uses: appleboy/ssh-action@v0.1.4
+        uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
