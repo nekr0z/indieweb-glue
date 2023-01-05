@@ -4,8 +4,6 @@ jobs:
   doit:
     name: tbd
     runs-on: ubuntu-latest
-    env:
-      CGO_ENABLED: 0
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -30,6 +28,8 @@ jobs:
         run: |
           go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
       - name: build
+        env:
+          CGO_ENABLED: 0
         run: |
           go build -buildmode=pie -trimpath -ldflags "-s -w -buildid="
       - name: artifact
