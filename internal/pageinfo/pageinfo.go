@@ -149,7 +149,7 @@ func mfTitle(d *goquery.Document) string {
 
 // mfProperty returns the text property of microformatted content
 func mfProperty(d *goquery.Document, p string) string {
-	data := microformats.ParseNode(d.Get(0), nil)
+	data := microformats.ParseNode(d.Get(0), &url.URL{})
 	for _, item := range data.Items {
 		if item.ID == "content" {
 			n := item.Properties[p]

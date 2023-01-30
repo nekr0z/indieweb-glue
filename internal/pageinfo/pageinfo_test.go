@@ -109,6 +109,7 @@ func TestTitle(t *testing.T) {
 		want     string
 	}{
 		"indieweb wiki": {"person_mention.html", "person mention"},
+		"relative base": {"relative_base.html", ""},
 	}
 
 	for name, tc := range tests {
