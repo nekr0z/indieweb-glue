@@ -30,6 +30,7 @@ type HCard struct {
 	Source   string `json:"source,omitempty"`
 	PName    string `json:"pname,omitempty"`
 	Nickname string `json:"nickname,omitempty"`
+	Note     string `json:"note,omitempty"`
 	Photo    string `json:"uphoto,omitempty"`
 }
 
@@ -119,6 +120,7 @@ func Fetch(link string) (*HCard, *http.Header, error) {
 			hc.Photo = parseProperty(i, "photo")
 			hc.PName = parseProperty(i, "name")
 			hc.Nickname = parseProperty(i, "nickname")
+			hc.Note = parseProperty(i, "note")
 		}
 	}
 

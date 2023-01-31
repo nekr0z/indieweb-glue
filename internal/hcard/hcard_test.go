@@ -43,15 +43,16 @@ func TestFetchHcard(t *testing.T) {
 	}
 }
 
-func TestNickname(t *testing.T) {
+func TestProperties(t *testing.T) {
 	tests := map[string]struct {
-		link string
-		want string
+		link     string
+		nickname string
+		note     string
 	}{
-		"evgeny": {"", "nekr0z"},
-		// "tim":    {"/tim.html", ""},
-		// "aaron":  {"/aaron.html", "%s/images/profile.jpg"},
-		// "ruxton": {"/ignition.html", "https://secure.gravatar.com/avatar/8401de9afbdfada34ca21681a2394340?s=125&d=default&r=g"},
+		"evgeny": {"", "nekr0z", ""},
+		"tim":    {"/tim.html", "", "Разработчик. Занимаюсь вебом,"},
+		"aaron":  {"/aaron.html", "", "Hi, I'm Aaron"},
+		"ruxton": {"/ignition.html", "", "I'm a 35 year old guy"},
 	}
 
 	fs := http.FileServer(http.Dir("testdata"))
@@ -66,9 +67,12 @@ func TestNickname(t *testing.T) {
 			}
 
 			got := hc.Nickname
-
-			if got != tc.want {
-				t.Fatalf("want %v, got %v", tc.want, got)
+			if got != tc.nickname {
+				t.Fatalf("want nickname %v, got %v", tc.nickname, got)
+			}
+			got = hc.Note
+			if !strings.HasPrefix(got, tc.note) {
+				t.Fatalf("want note %v, got %v", tc.nickname, got)
 			}
 		})
 	}
