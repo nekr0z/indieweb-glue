@@ -38,6 +38,7 @@ func TestServe(t *testing.T) {
 		"hcard":    {serveJSON(c, "hcard", getHcard), fmt.Sprintf(`{"source":"%s","pname":"Евгений Кузнецов","nickname":"nekr0z","uphoto":"%s/img/avatar.jpg"}`, ms.URL, ms.URL)},
 		"og":       {serveJSON(c, "og", getOG), `{"title":"DIMV","description":"Личный сайт Евгения Кузнецова"}`},
 		"pageinfo": {serveJSON(c, "pageinfo", getPageInfo), `{"title":"DIMV","description":"Личный сайт Евгения Кузнецова"}`},
+		"404":      {serveJSON(c, "none", func(uri string) (js []byte, headers map[string][]string) { return getHcard("none") }), "no appropriate info at URL\n{}"},
 	}
 
 	for name, tc := range tests {
@@ -53,6 +54,11 @@ func TestServe(t *testing.T) {
 			res, err := http.Get(u.String())
 			if err != nil {
 				t.Fatalf("error: %v", err)
+			}
+
+			h := res.Header.Get("Access-Control-Allow-Origin")
+			if h != "*" {
+				t.Fatalf("CORS disabled")
 			}
 			defer res.Body.Close()
 
