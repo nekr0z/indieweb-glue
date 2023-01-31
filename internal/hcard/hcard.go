@@ -27,9 +27,10 @@ import (
 
 // HCard represents a h-card
 type HCard struct {
-	Source string `json:"source,omitempty"`
-	PName  string `json:"pname,omitempty"`
-	Photo  string `json:"uphoto,omitempty"`
+	Source   string `json:"source,omitempty"`
+	PName    string `json:"pname,omitempty"`
+	Nickname string `json:"nickname,omitempty"`
+	Photo    string `json:"uphoto,omitempty"`
 }
 
 func getRepresentativeHcard(page io.Reader, url *url.URL) (m *mf.Microformat) {
@@ -86,6 +87,8 @@ func getHcards(doc *goquery.Document, u *url.URL) (hcards []*mf.Microformat) {
 	return
 }
 
+// Fetch returns the representative H-Card found at the given URL, together
+// with the response header.
 func Fetch(link string) (*HCard, *http.Header, error) {
 	u, err := url.Parse(link)
 	if err != nil {
@@ -115,6 +118,7 @@ func Fetch(link string) (*HCard, *http.Header, error) {
 		case "h-card":
 			hc.Photo = parseProperty(i, "photo")
 			hc.PName = parseProperty(i, "name")
+			hc.Nickname = parseProperty(i, "nickname")
 		}
 	}
 

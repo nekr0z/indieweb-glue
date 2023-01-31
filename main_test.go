@@ -35,7 +35,7 @@ func TestServe(t *testing.T) {
 		f    func(http.ResponseWriter, *http.Request)
 		want string
 	}{
-		"hcard":    {serveJSON(c, "hcard", getHcard), fmt.Sprintf(`{"source":"%s","pname":"Евгений Кузнецов","uphoto":"%s/img/avatar.jpg"}`, ms.URL, ms.URL)},
+		"hcard":    {serveJSON(c, "hcard", getHcard), fmt.Sprintf(`{"source":"%s","pname":"Евгений Кузнецов","nickname":"nekr0z","uphoto":"%s/img/avatar.jpg"}`, ms.URL, ms.URL)},
 		"og":       {serveJSON(c, "og", getOG), `{"title":"DIMV","description":"Личный сайт Евгения Кузнецова"}`},
 		"pageinfo": {serveJSON(c, "pageinfo", getPageInfo), `{"title":"DIMV","description":"Личный сайт Евгения Кузнецова"}`},
 	}
